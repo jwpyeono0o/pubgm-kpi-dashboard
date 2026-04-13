@@ -1,0 +1,38 @@
+name: Update KPI Data
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # 매일 오전 10시 KST (01:00 UTC)
+  workflow_dispatch:        # 수동 실행 버튼
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install tableauserverclient
+
+      - name: Fetch Tableau data
+        env:
+          TABLEAU_PAT_NAME: ${{ secrets.TABLEAU_PAT_NAME }}
+          TABLEAU_PAT_SECRET: ${{ secrets.TABLEAU_PAT_SECRET }}
+        run: python fetch_data.py
+
+      - name: Commit and push updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "chore: auto-update KPI data $(date +'%Y-%m-%d')"
+          git push
