@@ -504,7 +504,7 @@
 // ⚡ 자동 연동: fetch_traffic.py 가 매일 data/traffic_classification.json 을 GitHub에 업로드
 let classificationData = []; // [{date, step1_dau, step2_dau, ...}, ...]
 let stepSectionOpen = false;
-fetch('data/traffic_classification.json')
+fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/traffic_classification.json')
   .then(r => r.ok ? r.json() : null)
   .then(d => {
     if (Array.isArray(d) && d.length) {
@@ -515,7 +515,7 @@ fetch('data/traffic_classification.json')
   .catch(() => {});
 
 let JP_SALES_DATA = {}; // data/jp_sales.json 로드 후 덮어씀
-fetch('data/jp_sales.json')
+fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/jp_sales.json')
   .then(r => r.ok ? r.json() : null)
   .then(d => {
     if (d && typeof d === 'object') {
@@ -1577,7 +1577,7 @@ function toggleStepSection() {
   if (stepSectionOpen) {
     if (!classificationData.length) {
       // 데이터 없으면 지금 바로 fetch해서 테이블/차트 채우기
-      fetch('data/traffic_classification.json?t=' + Date.now())
+      fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/traffic_classification.json?t=' + Date.now())
         .then(r => r.ok ? r.json() : null)
         .then(d => {
           if (Array.isArray(d) && d.length) {
