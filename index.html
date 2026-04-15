@@ -711,14 +711,15 @@ let revData   = null;
 let trfData   = null;
 let region       = 'jp';
 let lang         = 'ko';
-let rangeDays    = 30;
-let overviewDays = 60;   // 오버뷰 차트 조회 기간 (0=전체)
-let stepDays     = 90;   // 트래픽 세분화 차트 조회 기간 (0=전체)
 let periodTab    = 'daily';
-let tableStart   = '';   // 커스텀 기간 시작 (YYYY-MM-DD)
-let tableEnd     = '';   // 커스텀 기간 종료
-let baseDate     = '';   // 기준일 (YYYY-MM-DD), 비어있으면 마지막 날 자동
+let baseDate     = '';   // 기준일 (YYYY-MM-DD)
 let charts       = {};
+
+// ── 조회 기간 상태 (각 섹션별 독립) ──
+let overviewDays  = 60;  let overviewStart = ''; let overviewEnd = '';
+let rangeDays     = 30;  let rangeStart    = ''; let rangeEnd    = '';
+let stepDays      = 90;  let stepStart     = ''; let stepEnd     = '';
+let tableStart    = '';  let tableEnd      = ''; // ③ 기간 표 전용
 
 // ── Column indices ─────────────────────
 const RC = {
@@ -813,6 +814,11 @@ function parseSheet(buffer) {
 // ── Filter by range (차트용) ───────────
 function filterRange(data) {
   if (!data||data.length===0) return [];
+  if (rangeStart && rangeEnd) {
+    const s=new Date(rangeStart); s.setHours(0,0,0,0);
+    const e=new Date(rangeEnd);   e.setHours(23,59,59,999);
+    return data.filter(r=>r[0]>=s && r[0]<=e);
+  }
   if (rangeDays===0) return data;
   const last=data[data.length-1][0];
   const cutoff=new Date(last); cutoff.setDate(cutoff.getDate()-rangeDays+1);
@@ -1590,16 +1596,9 @@ function renderKpiSummary(hasTrf, hasRev) {
 // ── Render: ③ 상세 데이터 — 추이 차트 ──
 function renderDetailCharts(hasTrf, hasRev) {
   const reg = region;
-  let html = `
-  <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:14px;">
-    <span class="range-bar-label">조회 기간</span>
-    <div class="pill-group">
-      <button class="pill ${rangeDays===7?'active':''}"  onclick="setRange(7)"  id="d7">${t('d7')}</button>
-      <button class="pill ${rangeDays===30?'active':''}" onclick="setRange(30)" id="d30">${t('d30')}</button>
-      <button class="pill ${rangeDays===90?'active':''}" onclick="setRange(90)" id="d90">${t('d90')}</button>
-      <button class="pill ${rangeDays===0?'active':''}"  onclick="setRange(0)"  id="d0">${t('dAll')}</button>
-    </div>
-  </div>`;
+  const rMinD = hasTrf ? isoDate(trfData[0][0]) : (hasRev ? isoDate(revData[0][0]) : '');
+  const rMaxD = hasTrf ? isoDate(trfData[trfData.length-1][0]) : (hasRev ? isoDate(revData[revData.length-1][0]) : '');
+  let html = `<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">${renderPeriodCtrl('range', rangeDays, rangeStart, rangeEnd, rMinD, rMaxD)}</div>`;
   if (hasTrf) {
     html += `
     <div class="section">
@@ -1672,7 +1671,14 @@ function initStepCharts() {
   if (!classificationData.length) return;
 
   // 기간 필터
-  const recent = stepDays === 0 ? classificationData : classificationData.slice(-stepDays);
+  let recent;
+  if (stepStart && stepEnd) {
+    recent = classificationData.filter(r => r.date >= stepStart && r.date <= stepEnd);
+  } else if (stepDays === 0) {
+    recent = classificationData;
+  } else {
+    recent = classificationData.slice(-stepDays);
+  }
   const labels = recent.map(r => r.date.slice(5));
   const s1 = recent.map(r => r.step1_dau);
   const s2 = recent.map(r => r.step2_dau);
@@ -1753,14 +1759,11 @@ function renderClassificationSection() {
         <span id="stepLatestRatio" style="font-size:10px;color:#9ca3af;font-weight:400;">최신 Genuine Ratio: ${latestRatio} · ${latest?.date || ''}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
-        <div class="ctrl-bar">
-          <span class="ctrl-label">조회 기간</span>
-          <div class="pill-group">
-            <button class="pill ${stepDays===30?'active':''}"  onclick="setStepRange(30)">30일</button>
-            <button class="pill ${stepDays===90?'active':''}"  onclick="setStepRange(90)">90일</button>
-            <button class="pill ${stepDays===0?'active':''}"   onclick="setStepRange(0)">전체</button>
-          </div>
-        </div>
+        ${(()=>{
+          const sMinD = classificationData.length ? classificationData[0].date : '';
+          const sMaxD = classificationData.length ? classificationData[classificationData.length-1].date : '';
+          return renderPeriodCtrl('step', stepDays, stepStart, stepEnd, sMinD, sMaxD);
+        })()}
         <span class="step-toggle-icon ${stepSectionOpen ? 'open' : ''}" id="stepToggleIcon">▼</span>
       </div>
     </div>
@@ -1822,15 +1825,11 @@ function render() {
     <div class="dash-section-header">
       <span class="section-num">①</span>
       <span class="dash-section-title">${t('sectionOverview')}</span>
-      <div class="ctrl-bar">
-        <span class="ctrl-label">조회 기간</span>
-        <div class="pill-group">
-          <button class="pill ${overviewDays===30?'active':''}"  onclick="setOverviewRange(30)">30일</button>
-          <button class="pill ${overviewDays===60?'active':''}"  onclick="setOverviewRange(60)">60일</button>
-          <button class="pill ${overviewDays===90?'active':''}"  onclick="setOverviewRange(90)">90일</button>
-          <button class="pill ${overviewDays===0?'active':''}"   onclick="setOverviewRange(0)">전체</button>
-        </div>
-      </div>
+      ${(()=>{
+        const ovMinD = hasTrf ? isoDate(trfData[0][0]) : (hasRev ? isoDate(revData[0][0]) : '');
+        const ovMaxD = hasTrf ? isoDate(trfData[trfData.length-1][0]) : (hasRev ? isoDate(revData[revData.length-1][0]) : '');
+        return renderPeriodCtrl('overview', overviewDays, overviewStart, overviewEnd, ovMinD, ovMaxD);
+      })()}
     </div>
     ${renderOverviewChart(hasTrf, hasRev)}
     ${region === 'jp' ? renderClassificationSection() : ''}
@@ -1876,6 +1875,11 @@ function render() {
     // 기간 설정이 있으면 해당 범위, 없으면 최근 60일
     function sliceCombo(data) {
       if (!data||!data.length) return [];
+      if (overviewStart && overviewEnd) {
+        const s=new Date(overviewStart); s.setHours(0,0,0,0);
+        const e=new Date(overviewEnd);   e.setHours(23,59,59,999);
+        return data.filter(r=>r[0]>=s && r[0]<=e);
+      }
       if (overviewDays === 0) return data;
       const last=data[data.length-1][0];
       const cut=new Date(last); cut.setDate(cut.getDate()-(overviewDays-1));
@@ -2004,17 +2008,65 @@ function setRange(days) {
 }
 function setPeriod(p) { periodTab=p; render(); }
 
-function setOverviewRange(days) {
-  overviewDays = days;
-  render();
+// ── 공통 기간 컨트롤 렌더 함수 ──
+function renderPeriodCtrl(prefix, days, start, end, minD, maxD) {
+  const hasCustom = !!(start && end);
+  const caps = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+  const btns = [7,30,60,90].map(d =>
+    `<button class="pill ${!hasCustom && days===d?'active':''}" onclick="set${caps}Days(${d})">${d}일</button>`
+  ).join('');
+  return `<div class="ctrl-bar">
+    <span class="ctrl-label">조회 기간</span>
+    <div class="pill-group">${btns}</div>
+    <input type="date" id="${prefix}StartInput" class="range-date-input${hasCustom?' active':''}"
+      value="${start}" min="${minD}" max="${maxD}">
+    <span style="color:#9ca3af;font-size:11px;margin:0 2px;">~</span>
+    <input type="date" id="${prefix}EndInput" class="range-date-input${hasCustom?' active':''}"
+      value="${end}" min="${minD}" max="${maxD}">
+    <button class="range-apply-btn" onclick="apply${caps}Range()">적용</button>
+    ${hasCustom?`<button class="range-reset-btn" onclick="reset${caps}Range()">초기화</button>`:''}
+  </div>`;
 }
-function setStepRange(days) {
-  stepDays = days;
-  initStepCharts();
-  // 테이블 라벨 업데이트
-  const el = document.getElementById('stepRangeLabel');
-  if (el) el.textContent = days === 0 ? '전체' : days + '일';
+
+// ── Overview 기간 제어 ──
+function setOverviewDays(d) { overviewDays=d; overviewStart=''; overviewEnd=''; render(); }
+function applyOverviewRange() {
+  const s=document.getElementById('overviewStartInput')?.value;
+  const e=document.getElementById('overviewEndInput')?.value;
+  if(!s||!e){alert('시작일과 종료일을 모두 입력해주세요.');return;}
+  if(s>e){alert('시작일이 종료일보다 늦습니다.');return;}
+  overviewStart=s; overviewEnd=e; overviewDays=0; render();
 }
+function resetOverviewRange() { overviewStart=''; overviewEnd=''; overviewDays=60; render(); }
+
+// ── Detail Charts 기간 제어 ──
+function setRangeDays(d) { rangeDays=d; rangeStart=''; rangeEnd=''; render(); }
+function applyRangeRange() {
+  const s=document.getElementById('rangeStartInput')?.value;
+  const e=document.getElementById('rangeEndInput')?.value;
+  if(!s||!e){alert('시작일과 종료일을 모두 입력해주세요.');return;}
+  if(s>e){alert('시작일이 종료일보다 늦습니다.');return;}
+  rangeStart=s; rangeEnd=e; rangeDays=0; render();
+}
+function resetRangeRange() { rangeStart=''; rangeEnd=''; rangeDays=30; render(); }
+// 기존 setRange 호환 유지
+function setRange(d) { setRangeDays(d); }
+
+// ── Step 기간 제어 ──
+function setStepDays(d) { stepDays=d; stepStart=''; stepEnd=''; initStepCharts(); }
+function applyStepRange() {
+  const s=document.getElementById('stepStartInput')?.value;
+  const e=document.getElementById('stepEndInput')?.value;
+  if(!s||!e){alert('시작일과 종료일을 모두 입력해주세요.');return;}
+  if(s>e){alert('시작일이 종료일보다 늦습니다.');return;}
+  stepStart=s; stepEnd=e; stepDays=0; initStepCharts();
+}
+function resetStepRange() { stepStart=''; stepEnd=''; stepDays=90; initStepCharts(); }
+
+// 기존 setOverviewRange 호환
+function setOverviewRange(d) { setOverviewDays(d); }
+function setStepRange(d) { setStepDays(d); }
+
 function toggleDsPanel() {
   const body   = document.getElementById('dsPanelBody');
   const header = document.getElementById('dsPanelHeader');
