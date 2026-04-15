@@ -515,7 +515,7 @@ fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/dat
   .catch(() => {});
 
 let JP_SALES_DATA = {}; // data/jp_sales.json 로드 후 덮어씀
-fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/jp_sales.json')
+fetch('data/jp_sales.json')
   .then(r => r.ok ? r.json() : null)
   .then(d => {
     if (d && typeof d === 'object') {
