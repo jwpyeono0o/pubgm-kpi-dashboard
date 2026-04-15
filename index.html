@@ -1574,7 +1574,32 @@ function toggleStepSection() {
   if (!body) return;
   body.classList.toggle('open', stepSectionOpen);
   icon.classList.toggle('open', stepSectionOpen);
-  if (stepSectionOpen) initStepCharts();
+  if (stepSectionOpen) {
+    if (!classificationData.length) {
+      // 데이터 없으면 지금 바로 fetch해서 테이블/차트 채우기
+      fetch('data/traffic_classification.json?t=' + Date.now())
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (Array.isArray(d) && d.length) {
+            classificationData = d;
+            // 테이블 업데이트
+            const tbody = document.getElementById('stepTbody');
+            if (tbody) tbody.innerHTML = buildStepRows();
+            // 헤더 ratio 업데이트
+            const latestEl = document.getElementById('stepLatestRatio');
+            const last = classificationData[classificationData.length - 1];
+            if (latestEl && last) {
+              const ratio = last.step1_dau ? ((last.step2_dau/last.step1_dau)*100).toFixed(1)+'%' : '-';
+              latestEl.textContent = '최신 Genuine Ratio: ' + ratio + ' · ' + last.date;
+            }
+          }
+          initStepCharts();
+        })
+        .catch(() => initStepCharts());
+    } else {
+      initStepCharts();
+    }
+  }
 }
 
 function initStepCharts() {
@@ -1629,10 +1654,10 @@ function initStepCharts() {
   }
 }
 
-function renderClassificationSection() {
-  // 최근 14일 테이블
+function buildStepRows() {
   const recent14 = classificationData.length ? classificationData.slice(-14).reverse() : [];
-  const rows = recent14.map(r => {
+  if (!recent14.length) return '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:12px;">데이터 로딩 중...</td></tr>';
+  return recent14.map(r => {
     const ratio = r.step1_dau ? ((r.step2_dau / r.step1_dau) * 100).toFixed(1) : '-';
     const barW  = r.step1_dau ? Math.round((r.step2_dau / r.step1_dau) * 80) : 0;
     return `<tr>
@@ -1642,6 +1667,10 @@ function renderClassificationSection() {
       <td>${ratio !== '-' ? ratio + '%' : '-'}<span class="step-ratio-bar" style="width:${barW}px"></span></td>
     </tr>`;
   }).join('');
+}
+
+function renderClassificationSection() {
+  const rows = buildStepRows();
 
   const latest = classificationData.length ? classificationData[classificationData.length - 1] : null;
   const latestRatio = latest && latest.step1_dau
@@ -1655,7 +1684,7 @@ function renderClassificationSection() {
         📊 트래픽 세분화 분석
         <span class="step-badge-1">Step1</span>
         <span class="step-badge-2">Step2</span>
-        <span style="font-size:10px;color:#9ca3af;font-weight:400;">최신 Genuine Ratio: ${latestRatio} · ${latest?.date || ''}</span>
+        <span id="stepLatestRatio" style="font-size:10px;color:#9ca3af;font-weight:400;">최신 Genuine Ratio: ${latestRatio} · ${latest?.date || ''}</span>
       </div>
       <span class="step-toggle-icon ${stepSectionOpen ? 'open' : ''}" id="stepToggleIcon">▼</span>
     </div>
@@ -1671,7 +1700,7 @@ function renderClassificationSection() {
           <th>Step2 DAU</th>
           <th>Genuine Ratio</th>
         </tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody id="stepTbody">${rows}</tbody>
       </table>
     </div>
   </div>`;
