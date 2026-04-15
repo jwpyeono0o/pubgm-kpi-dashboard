@@ -355,6 +355,7 @@
     .ds-trf   { background:rgba(234,88,12,.1); color:#ea580c; }
     .ds-rev   { background:rgba(30,58,95,.1);  color:#1e3a5f; }
     .ds-jp    { background:rgba(16,185,129,.1); color:#059669; }
+    .ds-cls   { background:rgba(124,58,237,.1); color:#7c3aed; }
     .ds-ev    { background:rgba(156,163,175,.1); color:#9ca3af; }
     .ds-link  { color:#2563eb; text-decoration:none; font-size:10px; }
     .ds-link:hover { text-decoration:underline; }
@@ -1490,6 +1491,12 @@ function renderOverviewChart(hasTrf, hasRev) {
       <span class="ds-auto">⚡ 자동 연동</span>
     </div>
     <div class="ds-item">
+      <span class="ds-badge ds-cls">Step1/2</span>
+      Tableau › Traffic by Country Classification Step › DAU / Genuine Ratio
+      <a href="https://prod-useast-a.online.tableau.com/#/site/kraftonbi/views/WIPPUBGMTrafficDatabyCountryClassificationStep/DownloadDailyTraffic" target="_blank" class="ds-link">🔗</a>
+      <span class="ds-auto">⚡ 자동 연동</span>
+    </div>
+    <div class="ds-item">
       <span class="ds-badge ds-ev">Event</span>
       미연동
       <span class="ds-soon">🔜 준비 중</span>
@@ -1746,6 +1753,7 @@ function render() {
       <span class="dash-section-title">${t('sectionOverview')}</span>
     </div>
     ${renderOverviewChart(hasTrf, hasRev)}
+    ${region === 'jp' ? renderClassificationSection() : ''}
   </div>`;
 
   // ② 성과 요약
@@ -1768,7 +1776,6 @@ function render() {
     ${renderPeriodSection(hasTrf, hasRev)}
     <div class="block-divider" style="margin:20px 0 22px;"></div>
     ${renderDetailCharts(hasTrf, hasRev)}
-    ${region === 'jp' ? renderClassificationSection() : ''}
   </div>`;
 
   document.getElementById('dash').innerHTML = html;
