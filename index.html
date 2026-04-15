@@ -506,7 +506,12 @@ let classificationData = []; // [{date, step1_dau, step2_dau, ...}, ...]
 let stepSectionOpen = false;
 fetch('data/traffic_classification.json')
   .then(r => r.ok ? r.json() : null)
-  .then(d => { if (Array.isArray(d) && d.length) classificationData = d; })
+  .then(d => {
+    if (Array.isArray(d) && d.length) {
+      classificationData = d;
+      if ((typeof trfData!=='undefined'&&trfData&&trfData.length)||(typeof revData!=='undefined'&&revData&&revData.length)) render();
+    }
+  })
   .catch(() => {});
 
 let JP_SALES_DATA = {}; // data/jp_sales.json 로드 후 덮어씀
