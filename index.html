@@ -1630,10 +1630,8 @@ function initStepCharts() {
 }
 
 function renderClassificationSection() {
-  if (!classificationData.length) return '';
-
   // 최근 14일 테이블
-  const recent14 = classificationData.slice(-14).reverse();
+  const recent14 = classificationData.length ? classificationData.slice(-14).reverse() : [];
   const rows = recent14.map(r => {
     const ratio = r.step1_dau ? ((r.step2_dau / r.step1_dau) * 100).toFixed(1) : '-';
     const barW  = r.step1_dau ? Math.round((r.step2_dau / r.step1_dau) * 80) : 0;
@@ -1645,10 +1643,10 @@ function renderClassificationSection() {
     </tr>`;
   }).join('');
 
-  const latest = classificationData[classificationData.length - 1];
+  const latest = classificationData.length ? classificationData[classificationData.length - 1] : null;
   const latestRatio = latest && latest.step1_dau
     ? ((latest.step2_dau / latest.step1_dau) * 100).toFixed(1) + '%'
-    : '-';
+    : (classificationData.length ? '-' : '로딩 중...');
 
   return `
   <div class="step-collapse">
