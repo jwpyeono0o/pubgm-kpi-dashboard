@@ -410,6 +410,53 @@
       font-size:11px; font-weight:800; flex-shrink:0;
       line-height:1;
     }
+
+    /* ── 공통 컨트롤 바 (조회 기간 / 기준일) ── */
+    .ctrl-bar {
+      display:flex; align-items:center; gap:7px;
+      margin-left:auto; flex-shrink:0;
+    }
+    .ctrl-label {
+      font-size:10px; color:#9ca3af; font-weight:600; white-space:nowrap;
+    }
+    .base-date-input {
+      padding:3px 7px; border:1px solid #d1d9e6; border-radius:5px;
+      font-size:11px; color:#374151; background:#fff; cursor:pointer;
+    }
+    .base-date-reset {
+      padding:3px 9px; border:1px solid #d1d9e6; border-radius:5px;
+      font-size:11px; font-weight:600; color:#6b7280; background:#f9fafb;
+      cursor:pointer; transition:all .15s;
+    }
+    .base-date-reset:hover { background:#e5e7eb; color:#374151; }
+
+    /* ── Data Source 접기/펼치기 패널 ── */
+    .ds-panel {
+      margin-bottom:14px; border:1px solid #e3e8f0; border-radius:9px;
+      background:#fff; overflow:hidden;
+    }
+    .ds-panel-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:9px 14px; cursor:pointer; background:#f8fafc;
+      border-bottom:1px solid transparent; transition:all .15s;
+    }
+    .ds-panel-header:hover { background:#f0f4fb; }
+    .ds-panel-header.open { border-bottom-color:#e3e8f0; }
+    .ds-panel-title { font-size:11px; font-weight:700; color:#6b7280; display:flex; align-items:center; gap:6px; }
+    .ds-panel-toggle { font-size:10px; color:#9ca3af; transition:transform .2s; }
+    .ds-panel-toggle.open { transform:rotate(180deg); }
+    .ds-panel-body { display:none; padding:10px 14px 12px; }
+    .ds-panel-body.open { display:block; }
+    .ds-item {
+      display:flex; align-items:center; gap:7px;
+      font-size:11px; color:#6b7280; padding:5px 0;
+      border-bottom:1px solid #f3f4f6;
+    }
+    .ds-item:last-child { border-bottom:none; }
+    .ds-item-text { flex:1; }
+
+    /* ── Step 테이블 스크롤 ── */
+    .step-table-scroll { max-height:210px; overflow-y:auto; border-radius:6px; border:1px solid #f3f4f6; }
   </style>
 </head>
 <body>
@@ -461,6 +508,43 @@
       </li>
       <li><span data-i18n="guideStep4">다운로드된 파일을 아래 각 업로드 영역에 첨부</span></li>
     </ol>
+  </div>
+
+  <!-- Data Source 패널 -->
+  <div class="ds-panel" id="dsPanelWrap">
+    <div class="ds-panel-header" id="dsPanelHeader" onclick="toggleDsPanel()">
+      <div class="ds-panel-title">📌 Data Source</div>
+      <span class="ds-panel-toggle" id="dsPanelToggle">▼</span>
+    </div>
+    <div class="ds-panel-body" id="dsPanelBody">
+      <div class="ds-item">
+        <span class="ds-badge ds-trf">T-LOG</span>
+        <span class="ds-item-text">Tableau › Daily Traffic KPI (T-log Only) › DAU / NRU / Return</span>
+        <a href="https://prod-useast-a.online.tableau.com/#/site/kraftonbi/views/KRJPKPITLOG_Temp/KRJPKPIDashboard" target="_blank" class="ds-link">🔗</a>
+      </div>
+      <div class="ds-item">
+        <span class="ds-badge ds-rev">BILLING</span>
+        <span class="ds-item-text">Tableau › Daily Revenue KPI (Billing Log Only) › Revenue / PU / PUR / ARPU / ARPPU</span>
+        <a href="https://prod-useast-a.online.tableau.com/#/site/kraftonbi/views/KRJPKPITLOG_Temp/KRJPKPIDashboard" target="_blank" class="ds-link">🔗</a>
+      </div>
+      <div class="ds-item">
+        <span class="ds-badge ds-jp">JP Sales</span>
+        <span class="ds-item-text">Overall Schedule_2025.xlsx › JP 시트 › AH열</span>
+        <a href="https://blueholestudio.sharepoint.com/:x:/s/PUBGM_HQ2/EYWhjZh6DJZPkwlPnzMw1xgB4b6gLvg--PysBdFWOpRAIg?e=vs6eta" target="_blank" class="ds-link">🔗</a>
+        <span class="ds-auto">⚡ 자동 연동</span>
+      </div>
+      <div class="ds-item">
+        <span class="ds-badge ds-cls">Step1/2</span>
+        <span class="ds-item-text">Tableau › Traffic by Country Classification Step › DAU / Genuine Ratio</span>
+        <a href="https://prod-useast-a.online.tableau.com/#/site/kraftonbi/views/WIPPUBGMTrafficDatabyCountryClassificationStep/DownloadDailyTraffic" target="_blank" class="ds-link">🔗</a>
+        <span class="ds-auto">⚡ 자동 연동</span>
+      </div>
+      <div class="ds-item">
+        <span class="ds-badge ds-ev">Event</span>
+        <span class="ds-item-text">미연동</span>
+        <span class="ds-soon">🔜 준비 중</span>
+      </div>
+    </div>
   </div>
 
   <!-- Upload: Traffic 왼쪽, Revenue 오른쪽 -->
@@ -625,14 +709,16 @@ const I18N = {
 // ── State ─────────────────────────────
 let revData   = null;
 let trfData   = null;
-let region    = 'jp';
-let lang      = 'ko';
-let rangeDays  = 30;
-let periodTab  = 'daily';
-let tableStart = '';  // 커스텀 기간 시작 (YYYY-MM-DD), 비어있으면 기본 탭 기간
-let tableEnd   = '';  // 커스텀 기간 종료
-let baseDate   = '';  // 기준일 (YYYY-MM-DD), 비어있으면 데이터 마지막 날 자동
-let charts     = {};
+let region       = 'jp';
+let lang         = 'ko';
+let rangeDays    = 30;
+let overviewDays = 60;   // 오버뷰 차트 조회 기간 (0=전체)
+let stepDays     = 90;   // 트래픽 세분화 차트 조회 기간 (0=전체)
+let periodTab    = 'daily';
+let tableStart   = '';   // 커스텀 기간 시작 (YYYY-MM-DD)
+let tableEnd     = '';   // 커스텀 기간 종료
+let baseDate     = '';   // 기준일 (YYYY-MM-DD), 비어있으면 마지막 날 자동
+let charts       = {};
 
 // ── Column indices ─────────────────────
 const RC = {
@@ -1472,60 +1558,33 @@ function renderOverviewChart(hasTrf, hasRev) {
     </div>
     <div class="combo-wrap"><canvas id="cCombo"></canvas></div>
   </div>
-  <div class="ds-bar">
-    <span class="ds-title">📌 Data Source</span>
-    <div class="ds-item">
-      <span class="ds-badge ds-trf">T-LOG</span>
-      Tableau › Daily Traffic KPI (T-log Only) › DAU / NRU / Return
-      <a href="https://prod-useast-a.online.tableau.com/#/site/kraftonbi/views/KRJPKPITLOG_Temp/KRJPKPIDashboard" target="_blank" class="ds-link">🔗</a>
-    </div>
-    <div class="ds-item">
-      <span class="ds-badge ds-rev">BILLING</span>
-      Tableau › Daily Revenue KPI (Billing Log Only) › Revenue / PU / PUR / ARPU / ARPPU
-      <a href="https://prod-useast-a.online.tableau.com/#/site/kraftonbi/views/KRJPKPITLOG_Temp/KRJPKPIDashboard" target="_blank" class="ds-link">🔗</a>
-    </div>
-    <div class="ds-item">
-      <span class="ds-badge ds-jp">JP Sales</span>
-      Overall Schedule_2025.xlsx › JP 시트 › AH열
-      <a href="https://blueholestudio.sharepoint.com/:x:/s/PUBGM_HQ2/EYWhjZh6DJZPkwlPnzMw1xgB4b6gLvg--PysBdFWOpRAIg?e=vs6eta" target="_blank" class="ds-link">🔗</a>
-      <span class="ds-auto">⚡ 자동 연동</span>
-    </div>
-    <div class="ds-item">
-      <span class="ds-badge ds-cls">Step1/2</span>
-      Tableau › Traffic by Country Classification Step › DAU / Genuine Ratio
-      <a href="https://prod-useast-a.online.tableau.com/#/site/kraftonbi/views/WIPPUBGMTrafficDatabyCountryClassificationStep/DownloadDailyTraffic" target="_blank" class="ds-link">🔗</a>
-      <span class="ds-auto">⚡ 자동 연동</span>
-    </div>
-    <div class="ds-item">
-      <span class="ds-badge ds-ev">Event</span>
-      미연동
-      <span class="ds-soon">🔜 준비 중</span>
-    </div>
-  </div>`;
+  `;
 }
 
-// ── Render: ② 성과 요약 ───────────────
-function renderKpiSummary(hasTrf, hasRev) {
-  const reg = region;
+// ── Render: ② 기준일 컨트롤 (헤더 우측) ──
+function renderBaseDateCtrl(hasTrf, hasRev) {
   const lastRev = hasRev ? revData[revData.length-1] : null;
   const lastTrf = hasTrf ? trfData[trfData.length-1] : null;
   const latestDate = lastTrf ? isoDate(lastTrf[0]) : (lastRev ? isoDate(lastRev[0]) : '');
   const baseDt = getBaseDt();
   const baseDateStr = isoDate(baseDt);
   const minD2 = isoDate((hasTrf?trfData[0]:revData[0])[0]);
-  const maxD2 = latestDate;
-  const ranges = getPeriodRanges(baseDt);
-  let html = `
-  <div class="base-date-bar">
-    <span class="base-date-label">${t('baseDateLabel')}</span>
+  return `
+  <div class="ctrl-bar">
+    <span class="ctrl-label">${t('baseDateLabel')}</span>
     <input type="date" id="baseDateInput" class="base-date-input"
-      value="${baseDateStr}" min="${minD2}" max="${maxD2}"
+      value="${baseDateStr}" min="${minD2}" max="${latestDate}"
       onchange="setBaseDate(this.value)">
     <button class="base-date-reset" onclick="resetBaseDate()">${t('baseDateReset')}</button>
-    <span class="base-date-hint">${t('baseDateHint')}</span>
   </div>`;
-  html += renderKpiTables(hasTrf, hasRev, reg, ranges);
-  return html;
+}
+
+// ── Render: ② 성과 요약 ───────────────
+function renderKpiSummary(hasTrf, hasRev) {
+  const reg = region;
+  const baseDt = getBaseDt();
+  const ranges = getPeriodRanges(baseDt);
+  return renderKpiTables(hasTrf, hasRev, reg, ranges);
 }
 
 // ── Render: ③ 상세 데이터 — 추이 차트 ──
@@ -1612,8 +1671,8 @@ function toggleStepSection() {
 function initStepCharts() {
   if (!classificationData.length) return;
 
-  // 최근 90일 필터
-  const recent = classificationData.slice(-90);
+  // 기간 필터
+  const recent = stepDays === 0 ? classificationData : classificationData.slice(-stepDays);
   const labels = recent.map(r => r.date.slice(5));
   const s1 = recent.map(r => r.step1_dau);
   const s2 = recent.map(r => r.step2_dau);
@@ -1662,7 +1721,7 @@ function initStepCharts() {
 }
 
 function buildStepRows() {
-  const recent14 = classificationData.length ? classificationData.slice(-14).reverse() : [];
+  const recent14 = classificationData.length ? classificationData.slice(-7).reverse() : [];
   if (!recent14.length) return '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:12px;">데이터 로딩 중...</td></tr>';
   return recent14.map(r => {
     const ratio = r.step1_dau ? ((r.step2_dau / r.step1_dau) * 100).toFixed(1) : '-';
@@ -1693,22 +1752,34 @@ function renderClassificationSection() {
         <span class="step-badge-2">Step2</span>
         <span id="stepLatestRatio" style="font-size:10px;color:#9ca3af;font-weight:400;">최신 Genuine Ratio: ${latestRatio} · ${latest?.date || ''}</span>
       </div>
-      <span class="step-toggle-icon ${stepSectionOpen ? 'open' : ''}" id="stepToggleIcon">▼</span>
+      <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
+        <div class="ctrl-bar">
+          <span class="ctrl-label">조회 기간</span>
+          <div class="pill-group">
+            <button class="pill ${stepDays===30?'active':''}"  onclick="setStepRange(30)">30일</button>
+            <button class="pill ${stepDays===90?'active':''}"  onclick="setStepRange(90)">90일</button>
+            <button class="pill ${stepDays===0?'active':''}"   onclick="setStepRange(0)">전체</button>
+          </div>
+        </div>
+        <span class="step-toggle-icon ${stepSectionOpen ? 'open' : ''}" id="stepToggleIcon">▼</span>
+      </div>
     </div>
     <div class="step-collapse-body ${stepSectionOpen ? 'open' : ''}" id="stepBody">
       <div class="step-chart-row">
         <div class="chart-card"><div class="chart-label">Step1 vs Step2 DAU 비교 (최근 90일)</div><div class="chart-wrap"><canvas id="cStep1v2"></canvas></div></div>
         <div class="chart-card"><div class="chart-label">Genuine Ratio % (최근 90일)</div><div class="chart-wrap"><canvas id="cStepRatio"></canvas></div></div>
       </div>
-      <table class="step-table">
-        <thead><tr>
-          <th>Date</th>
-          <th>Step1 DAU</th>
-          <th>Step2 DAU</th>
-          <th>Genuine Ratio</th>
-        </tr></thead>
-        <tbody id="stepTbody">${rows}</tbody>
-      </table>
+      <div class="step-table-scroll">
+        <table class="step-table">
+          <thead><tr>
+            <th>Date</th>
+            <th>Step1 DAU</th>
+            <th>Step2 DAU</th>
+            <th>Genuine Ratio</th>
+          </tr></thead>
+          <tbody id="stepTbody">${rows}</tbody>
+        </table>
+      </div>
     </div>
   </div>`;
 }
@@ -1751,6 +1822,15 @@ function render() {
     <div class="dash-section-header">
       <span class="section-num">①</span>
       <span class="dash-section-title">${t('sectionOverview')}</span>
+      <div class="ctrl-bar">
+        <span class="ctrl-label">조회 기간</span>
+        <div class="pill-group">
+          <button class="pill ${overviewDays===30?'active':''}"  onclick="setOverviewRange(30)">30일</button>
+          <button class="pill ${overviewDays===60?'active':''}"  onclick="setOverviewRange(60)">60일</button>
+          <button class="pill ${overviewDays===90?'active':''}"  onclick="setOverviewRange(90)">90일</button>
+          <button class="pill ${overviewDays===0?'active':''}"   onclick="setOverviewRange(0)">전체</button>
+        </div>
+      </div>
     </div>
     ${renderOverviewChart(hasTrf, hasRev)}
     ${region === 'jp' ? renderClassificationSection() : ''}
@@ -1762,6 +1842,7 @@ function render() {
     <div class="dash-section-header">
       <span class="section-num">②</span>
       <span class="dash-section-title">${t('sectionSummary')}</span>
+      ${renderBaseDateCtrl(hasTrf, hasRev)}
     </div>
     ${renderKpiSummary(hasTrf, hasRev)}
   </div>`;
@@ -1795,13 +1876,9 @@ function render() {
     // 기간 설정이 있으면 해당 범위, 없으면 최근 60일
     function sliceCombo(data) {
       if (!data||!data.length) return [];
-      if (tableStart && tableEnd) {
-        const s = new Date(tableStart); s.setHours(0,0,0,0);
-        const e = new Date(tableEnd);   e.setHours(23,59,59,999);
-        return data.filter(r=>r[0]>=s && r[0]<=e);
-      }
+      if (overviewDays === 0) return data;
       const last=data[data.length-1][0];
-      const cut=new Date(last); cut.setDate(cut.getDate()-59);
+      const cut=new Date(last); cut.setDate(cut.getDate()-(overviewDays-1));
       return data.filter(r=>r[0]>=cut);
     }
     const tSlice = hasTrf ? sliceCombo(trfData) : [];
@@ -1923,9 +2000,30 @@ function setLang(l) {
 }
 function setRange(days) {
   rangeDays=days;
-  render(); // range 버튼 active 상태는 renderDetailCharts에서 관리
+  render();
 }
 function setPeriod(p) { periodTab=p; render(); }
+
+function setOverviewRange(days) {
+  overviewDays = days;
+  render();
+}
+function setStepRange(days) {
+  stepDays = days;
+  initStepCharts();
+  // 테이블 라벨 업데이트
+  const el = document.getElementById('stepRangeLabel');
+  if (el) el.textContent = days === 0 ? '전체' : days + '일';
+}
+function toggleDsPanel() {
+  const body   = document.getElementById('dsPanelBody');
+  const header = document.getElementById('dsPanelHeader');
+  const toggle = document.getElementById('dsPanelToggle');
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  header.classList.toggle('open', open);
+  toggle.classList.toggle('open', open);
+}
 
 function resetData() {
   revData=null; trfData=null;
