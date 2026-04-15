@@ -587,13 +587,30 @@
 // ── Step1/Step2 트래픽 세분화 데이터 ──────────────────────────
 // 📂 Source: Tableau > WIPPUBGMTrafficDatabyCountryClassificationStep > DownloadDailyTraffic
 // ⚡ 자동 연동: fetch_traffic.py 가 매일 data/traffic_classification.json 을 GitHub에 업로드
-let classificationData = []; // [{date, step1_dau, step2_dau, ...}, ...]
+let classificationData   = []; // JP [{date, step1_dau, step2_dau, ...}, ...]
+let classificationDataKR = []; // KR [{date, step1_dau, step2_dau, ...}, ...]
 let stepSectionOpen = false;
+
+// 현재 region에 맞는 분류 데이터 반환
+function getClsData() { return region === 'kr' ? classificationDataKR : classificationData; }
+
+// JP 분류 데이터 fetch
 fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/traffic_classification.json')
   .then(r => r.ok ? r.json() : null)
   .then(d => {
     if (Array.isArray(d) && d.length) {
       classificationData = d;
+      if ((typeof trfData!=='undefined'&&trfData&&trfData.length)||(typeof revData!=='undefined'&&revData&&revData.length)) render();
+    }
+  })
+  .catch(() => {});
+
+// KR 분류 데이터 fetch
+fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/traffic_classification_kr.json')
+  .then(r => r.ok ? r.json() : null)
+  .then(d => {
+    if (Array.isArray(d) && d.length) {
+      classificationDataKR = d;
       if ((typeof trfData!=='undefined'&&trfData&&trfData.length)||(typeof revData!=='undefined'&&revData&&revData.length)) render();
     }
   })
@@ -1640,19 +1657,25 @@ function toggleStepSection() {
   body.classList.toggle('open', stepSectionOpen);
   icon.classList.toggle('open', stepSectionOpen);
   if (stepSectionOpen) {
-    if (!classificationData.length) {
+    const clsData = getClsData();
+    if (!clsData.length) {
       // 데이터 없으면 지금 바로 fetch해서 테이블/차트 채우기
-      fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/traffic_classification.json?t=' + Date.now())
+      const isKR = region === 'kr';
+      const url = 'https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/'
+        + (isKR ? 'traffic_classification_kr.json' : 'traffic_classification.json')
+        + '?t=' + Date.now();
+      fetch(url)
         .then(r => r.ok ? r.json() : null)
         .then(d => {
           if (Array.isArray(d) && d.length) {
-            classificationData = d;
+            if (isKR) classificationDataKR = d; else classificationData = d;
+            const data = getClsData();
             // 테이블 업데이트
             const tbody = document.getElementById('stepTbody');
             if (tbody) tbody.innerHTML = buildStepRows();
             // 헤더 ratio 업데이트
             const latestEl = document.getElementById('stepLatestRatio');
-            const last = classificationData[classificationData.length - 1];
+            const last = data[data.length - 1];
             if (latestEl && last) {
               const ratio = last.step1_dau ? ((last.step2_dau/last.step1_dau)*100).toFixed(1)+'%' : '-';
               latestEl.textContent = '최신 Genuine Ratio: ' + ratio + ' · ' + last.date;
@@ -1668,6 +1691,7 @@ function toggleStepSection() {
 }
 
 function initStepCharts() {
+  const classificationData = getClsData();
   if (!classificationData.length) return;
 
   // 기간 필터
@@ -1727,6 +1751,7 @@ function initStepCharts() {
 }
 
 function buildStepRows() {
+  const classificationData = getClsData();
   const recent14 = classificationData.length ? classificationData.slice(-7).reverse() : [];
   if (!recent14.length) return '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:12px;">데이터 로딩 중...</td></tr>';
   return recent14.map(r => {
@@ -1742,6 +1767,7 @@ function buildStepRows() {
 }
 
 function renderClassificationSection() {
+  const classificationData = getClsData();
   const rows = buildStepRows();
 
   const latest = classificationData.length ? classificationData[classificationData.length - 1] : null;
@@ -1760,8 +1786,9 @@ function renderClassificationSection() {
       </div>
       <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
         ${(()=>{
-          const sMinD = classificationData.length ? classificationData[0].date : '';
-          const sMaxD = classificationData.length ? classificationData[classificationData.length-1].date : '';
+          const _cd = getClsData();
+          const sMinD = _cd.length ? _cd[0].date : '';
+          const sMaxD = _cd.length ? _cd[_cd.length-1].date : '';
           return renderPeriodCtrl('step', stepDays, stepStart, stepEnd, sMinD, sMaxD);
         })()}
         <span class="step-toggle-icon ${stepSectionOpen ? 'open' : ''}" id="stepToggleIcon">▼</span>
@@ -1832,7 +1859,7 @@ function render() {
       })()}
     </div>
     ${renderOverviewChart(hasTrf, hasRev)}
-    ${region === 'jp' ? renderClassificationSection() : ''}
+    ${renderClassificationSection()}
   </div>`;
 
   // ② 성과 요약
