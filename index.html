@@ -319,6 +319,7 @@
     .comp-periods { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
     .comp-period-box.period-base { border-color:#bfdbfe; background:#f0f7ff; }
     .comp-period-box.period-disabled { opacity:.45; pointer-events:none; }
+    .comp-period-box.period-disabled .period-enable-toggle { pointer-events:all; opacity:1; }
     /* mode toggle */
     .period-mode-toggle { display:inline-flex; border:1px solid #e3e8f0; border-radius:6px; overflow:hidden; margin-left:auto; }
     .period-mode-toggle button { border:none; background:#fff; color:#6b7280; font-size:10px; font-weight:700; padding:3px 9px; cursor:pointer; transition:all .12s; }
@@ -1602,32 +1603,34 @@ function renderPeriodBox(key, p, badgeCls, label, isBase=false, canDisable=false
   const isDisabled = canDisable && !p.active;
   const preview = isCollab && p.collab ? (()=>{ const c=COLLABS.find(x=>x.id===p.collab); return c?`${c.start} ~ ${c.end}`:''; })() : '';
   return `
-  <div class="comp-period-box${isBase?' period-base':''}${isDisabled?' period-disabled':''}">
+  <div class="comp-period-box${isBase?' period-base':''}">
     <div class="period-title-row">
       <span class="comp-period-badge ${badgeCls}">${key}</span>
-      <span style="font-size:11px;font-weight:700;color:#374151;">${label}</span>
+      <span style="font-size:11px;font-weight:700;color:#374151;${isDisabled?'opacity:.45;':''}">${label}</span>
       ${canDisable ? `<label class="period-enable-toggle" style="margin-left:auto;">
         <input type="checkbox" ${p.active?'checked':''} onchange="togglePeriod('${key}',this.checked)"> 사용
       </label>` : ''}
     </div>
-    <div class="period-mode-toggle" style="margin-bottom:8px;">
-      <button class="${!isCollab?'active':''}" onclick="setPeriodMode('${key}','manual')">📅 직접 입력</button>
-      <button class="${isCollab?'active':''}" onclick="setPeriodMode('${key}','collab')">🎯 콜라보</button>
-    </div>
-    ${isCollab ? `
-      <select id="collabSelect${key}" class="comp-collab-select" onchange="onCollabSelect('${key}',this.value)">
-        ${collabOptions(p.collab)}
-      </select>
-      <div id="collabPreview${key}" class="comp-collab-preview">${preview}</div>
-    ` : `
-      <div class="comp-period-row">
-        <input type="date" id="${key.toLowerCase()}Start" class="comp-date-input" value="${p.start}"
-          onchange="${key==='A'?'compA':key==='B'?'compB':key==='C'?'compC':'compD'}.start=this.value">
-        <span class="comp-sep">~</span>
-        <input type="date" id="${key.toLowerCase()}End" class="comp-date-input" value="${p.end}"
-          onchange="${key==='A'?'compA':key==='B'?'compB':key==='C'?'compC':'compD'}.end=this.value">
+    <div style="${isDisabled?'opacity:.4;pointer-events:none;':''}">
+      <div class="period-mode-toggle" style="margin-bottom:8px;">
+        <button class="${!isCollab?'active':''}" onclick="setPeriodMode('${key}','manual')">📅 직접 입력</button>
+        <button class="${isCollab?'active':''}" onclick="setPeriodMode('${key}','collab')">🎯 콜라보</button>
       </div>
-    `}
+      ${isCollab ? `
+        <select id="collabSelect${key}" class="comp-collab-select" onchange="onCollabSelect('${key}',this.value)">
+          ${collabOptions(p.collab)}
+        </select>
+        <div id="collabPreview${key}" class="comp-collab-preview">${preview}</div>
+      ` : `
+        <div class="comp-period-row">
+          <input type="date" id="${key.toLowerCase()}Start" class="comp-date-input" value="${p.start}"
+            onchange="${key==='A'?'compA':key==='B'?'compB':key==='C'?'compC':'compD'}.start=this.value">
+          <span class="comp-sep">~</span>
+          <input type="date" id="${key.toLowerCase()}End" class="comp-date-input" value="${p.end}"
+            onchange="${key==='A'?'compA':key==='B'?'compB':key==='C'?'compC':'compD'}.end=this.value">
+        </div>
+      `}
+    </div>
   </div>`;
 }
 
