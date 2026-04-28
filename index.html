@@ -572,28 +572,28 @@
       <div class="ds-item">
         <span class="ds-badge ds-trf">T-LOG</span>
         <span class="ds-item-text">Databricks › pubgm_bi.pubgm_traffic_tlog_kpi_daily › DAU / NRU / Return / PCU</span>
-        <span class="ds-auto">⚡ 자동 연동</span>
+        <span class="ds-auto" data-i18n="dsAuto">⚡ 자동 연동</span>
       </div>
       <div class="ds-item">
         <span class="ds-badge ds-rev">BILLING</span>
         <span class="ds-item-text">Databricks › pubgm_bi.pubgm_economy_billing_kpi_daily › Revenue / PU / PUR / ARPU / ARPPU</span>
-        <span class="ds-auto">⚡ 자동 연동</span>
+        <span class="ds-auto" data-i18n="dsAuto">⚡ 자동 연동</span>
       </div>
       <div class="ds-item">
         <span class="ds-badge ds-jp">JP Sales</span>
-        <span class="ds-item-text">Overall Schedule_2024.xlsx › JP 시트 › AH열</span>
+        <span class="ds-item-text">Overall Schedule_2024.xlsx › <span data-i18n="dsJpSheet">JP 시트 › AH열</span></span>
         <a href="https://blueholestudio.sharepoint.com/:x:/s/PUBGM_HQ2/EYWhjZh6DJZPkwlPnzMw1xgB4b6gLvg--PysBdFWOpRAIg?e=vs6eta" target="_blank" class="ds-link">🔗</a>
-        <span class="ds-auto">⚡ 자동 연동</span>
+        <span class="ds-auto" data-i18n="dsAuto">⚡ 자동 연동</span>
       </div>
       <div class="ds-item">
         <span class="ds-badge ds-cls">Step1/2</span>
-        <span class="ds-item-text">Databricks › pubgm_bi.traffic_active_user_daily › Step1(전체) / Step2(login_ip=country 진성)</span>
-        <span class="ds-auto">⚡ 자동 연동</span>
+        <span class="ds-item-text">Databricks › pubgm_bi.traffic_active_user_daily › <span data-i18n="dsStepDesc">Step1(전체) / Step2(login_ip=country 진성)</span></span>
+        <span class="ds-auto" data-i18n="dsAuto">⚡ 자동 연동</span>
       </div>
       <div class="ds-item">
         <span class="ds-badge ds-ev">Event</span>
-        <span class="ds-item-text">미연동</span>
-        <span class="ds-soon">🔜 준비 중</span>
+        <span class="ds-item-text" data-i18n="dsNotConnected">미연동</span>
+        <span class="ds-soon" data-i18n="dsSoon">🔜 준비 중</span>
       </div>
     </div>
   </div>
@@ -602,18 +602,18 @@
   <div id="autoLoadBar" style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:11px 16px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;">
     <span style="font-size:20px;">⚡</span>
     <div style="flex:1;">
-      <div style="font-size:12px;font-weight:700;color:#0369a1;">Databricks 자동 연동</div>
-      <div id="autoLoadMsg" style="font-size:11px;color:#0284c7;margin-top:2px;">데이터 불러오는 중...</div>
+      <div style="font-size:12px;font-weight:700;color:#0369a1;" data-i18n="autoLoadTitle">Databricks 자동 연동</div>
+      <div id="autoLoadMsg" style="font-size:11px;color:#0284c7;margin-top:2px;" data-i18n="autoLoadMsg">데이터 불러오는 중...</div>
     </div>
-    <button onclick="loadDatabricks()" style="padding:5px 12px;border-radius:6px;border:1px solid #bae6fd;background:#fff;color:#0369a1;font-size:11px;font-weight:700;cursor:pointer;">🔄 새로고침</button>
+    <button onclick="loadDatabricks()" style="padding:5px 12px;border-radius:6px;border:1px solid #bae6fd;background:#fff;color:#0369a1;font-size:11px;font-weight:700;cursor:pointer;" data-i18n="autoLoadBtn">🔄 새로고침</button>
   </div>
 
   <!-- Dashboard -->
   <div id="dash">
     <div class="empty">
       <div class="empty-ico">⚡</div>
-      <div class="empty-title">Databricks에서 데이터 불러오는 중...</div>
-      <div class="empty-hint">잠시만 기다려주세요</div>
+      <div class="empty-title" data-i18n="emptyLoadingTitle">Databricks에서 데이터 불러오는 중...</div>
+      <div class="empty-hint" data-i18n="emptyLoadingHint">잠시만 기다려주세요</div>
     </div>
   </div>
 </div>
@@ -725,6 +725,52 @@ const I18N = {
     clTitle:'📋 업데이트 히스토리', clSub:'최신순 정렬 · 변경자 기준 관리',
     salesLabel:'🛍 판매 주요상품',
     tagFeat:'기능', tagFix:'수정', tagUI:'UI', tagData:'데이터',
+    // collab mgmt
+    collabMgmtTitle:'🎯 콜라보 관리',
+    collabEmpty:'등록된 콜라보가 없습니다',
+    collabColName:'이름', collabColType:'형식', collabColStart:'시작일', collabColEnd:'종료일', collabColDur:'기간',
+    collabNamePh:'콜라보 이름', collabDirectInput:'-- 직접 입력 --',
+    collabTypeSpin:'🌀 스핀', collabTypeCrate:'📦 크레이트', collabTypeEtc:'기타',
+    collabAddBtn:'+ 추가', collabSaveBtn:'저장', collabCancelBtn:'취소',
+    // period box
+    periodBase:'기준 기간', periodCompB:'비교 기간 B', periodCompC:'비교 기간 C', periodCompD:'비교 기간 D',
+    periodUse:'사용', periodManual:'📅 직접 입력', periodCollab:'🎯 콜라보', periodLabelPfx:'기간 ',
+    // norm days
+    normLabel:'📐 기간 통일', normPlaceholder:'일수 미입력 시 각 기간 그대로',
+    normUnit:'일', normClear:'✕ 해제', normHintInactive:'비워두면 각 기간 그대로 사용',
+    // compare results
+    compEmptyBCD:'비교 기간(B/C/D)을 설정해주세요.',
+    compMetricHeader:'지표', compVsALabel:'A 대비 증감율 (%)',
+    // charts
+    chartDau:'DAU 추이', chartNruRet:'NRU / Return 추이',
+    chartPuPur:'PU(막대) / PUR%(선) 추이', chartArppuArpu:'ARPPU(막대) / ARPU(선) 추이',
+    chartSalesDay:'주요상품 판매일',
+    // step section
+    stepTitle:'📊 트래픽 세분화 분석', stepLatestLabel:'최신 Genuine Ratio:',
+    stepLoading:'데이터 로딩 중...',
+    stepChartDau:'Step1 vs Step2 DAU 비교 (최근 90일)',
+    stepChartRatio:'Genuine Ratio % (최근 90일)',
+    // period control
+    ctrlLabel:'조회 기간', dayUnit:'일', rangeApplyBtn:'적용', rangeResetBtn:'초기화',
+    // alerts
+    alertFillAll:'이름, 시작일, 종료일을 모두 입력해주세요.',
+    alertDateOrder:'시작일이 종료일보다 늦습니다.',
+    alertDeleteConfirm:'삭제할까요?',
+    alertRangeFill:'시작일과 종료일을 모두 입력해주세요.',
+    // data source / autoload
+    dsAuto:'⚡ 자동 연동', dsNotConnected:'미연동', dsSoon:'🔜 준비 중',
+    dsJpSheet:'JP 시트 › AH열',
+    dsStepDesc:'Step1(전체) / Step2(login_ip=country 진성)',
+    autoLoadTitle:'Databricks 자동 연동',
+    autoLoadMsg:'데이터 불러오는 중...',
+    autoLoadBtn:'🔄 새로고침',
+    autoLoadMsgFetching:'불러오는 중...',
+    autoLoadMsgLatest:'최신 데이터',
+    autoLoadMsgEmpty:'데이터 없음 — GitHub 업로드 확인 필요',
+    autoLoadMsgFail:'로드 실패',
+    emptyLoadingTitle:'Databricks에서 데이터 불러오는 중...',
+    emptyLoadingHint:'잠시만 기다려주세요',
+    autoConnected:'Databricks 자동 연동',
   },
   ja: {
     title:'KRAFTON KPI ダッシュボード',
@@ -764,6 +810,52 @@ const I18N = {
     clTitle:'📋 更新履歴', clSub:'新しい順 · 更新者管理',
     salesLabel:'🛍 主要販売商品',
     tagFeat:'機能', tagFix:'修正', tagUI:'UI', tagData:'データ',
+    // collab mgmt
+    collabMgmtTitle:'🎯 コラボ管理',
+    collabEmpty:'登録済みのコラボはありません',
+    collabColName:'名前', collabColType:'形式', collabColStart:'開始日', collabColEnd:'終了日', collabColDur:'期間',
+    collabNamePh:'コラボ名', collabDirectInput:'-- 手動入力 --',
+    collabTypeSpin:'🌀 スピン', collabTypeCrate:'📦 クレート', collabTypeEtc:'その他',
+    collabAddBtn:'+ 追加', collabSaveBtn:'保存', collabCancelBtn:'キャンセル',
+    // period box
+    periodBase:'基準期間', periodCompB:'比較期間 B', periodCompC:'比較期間 C', periodCompD:'比較期間 D',
+    periodUse:'使用', periodManual:'📅 手動入力', periodCollab:'🎯 コラボ', periodLabelPfx:'期間',
+    // norm days
+    normLabel:'📐 期間統一', normPlaceholder:'日数未入力時は各期間そのまま',
+    normUnit:'日', normClear:'✕ 解除', normHintInactive:'未入力の場合は各期間そのまま使用',
+    // compare results
+    compEmptyBCD:'比較期間（B/C/D）を設定してください。',
+    compMetricHeader:'指標', compVsALabel:'A対比増減率（%）',
+    // charts
+    chartDau:'DAU 推移', chartNruRet:'NRU / Return 推移',
+    chartPuPur:'PU（棒）/ PUR%（線）推移', chartArppuArpu:'ARPPU（棒）/ ARPU（線）推移',
+    chartSalesDay:'主要商品販売日',
+    // step section
+    stepTitle:'📊 トラフィック細分化分析', stepLatestLabel:'最新 Genuine Ratio:',
+    stepLoading:'データ読み込み中...',
+    stepChartDau:'Step1 vs Step2 DAU比較（直近90日）',
+    stepChartRatio:'Genuine Ratio %（直近90日）',
+    // period control
+    ctrlLabel:'照会期間', dayUnit:'日', rangeApplyBtn:'適用', rangeResetBtn:'リセット',
+    // alerts
+    alertFillAll:'名前・開始日・終了日をすべて入力してください。',
+    alertDateOrder:'開始日が終了日より後になっています。',
+    alertDeleteConfirm:'削除しますか？',
+    alertRangeFill:'開始日と終了日をすべて入力してください。',
+    // data source / autoload
+    dsAuto:'⚡ 自動連携', dsNotConnected:'未連携', dsSoon:'🔜 準備中',
+    dsJpSheet:'JPシート › AH列',
+    dsStepDesc:'Step1（全体）/ Step2（login_ip=country 真正）',
+    autoLoadTitle:'Databricks 自動連携',
+    autoLoadMsg:'データ読み込み中...',
+    autoLoadBtn:'🔄 更新',
+    autoLoadMsgFetching:'読み込み中...',
+    autoLoadMsgLatest:'最新データ',
+    autoLoadMsgEmpty:'データなし — GitHubアップロードを確認してください',
+    autoLoadMsgFail:'読み込み失敗',
+    emptyLoadingTitle:'Databricksからデータを読み込み中...',
+    emptyLoadingHint:'しばらくお待ちください',
+    autoConnected:'Databricks 自動連携',
   }
 };
 
@@ -1318,8 +1410,8 @@ function addCollab() {
   const start = document.getElementById('newCollabStart')?.value;
   const end   = document.getElementById('newCollabEnd')?.value;
   const type  = document.getElementById('newCollabType')?.value || 'etc';
-  if (!name || !start || !end) { alert('이름, 시작일, 종료일을 모두 입력해주세요.'); return; }
-  if (start > end) { alert('시작일이 종료일보다 늦습니다.'); return; }
+  if (!name || !start || !end) { alert(t('alertFillAll')); return; }
+  if (start > end) { alert(t('alertDateOrder')); return; }
   COLLABS.push({id: uid(), name, start, end, type});
   saveCollabsToGH();
   document.getElementById('newCollabName').value = '';
@@ -1329,7 +1421,7 @@ function addCollab() {
 }
 
 function deleteCollab(id) {
-  if (!confirm('삭제할까요?')) return;
+  if (!confirm(t('alertDeleteConfirm'))) return;
   COLLABS = COLLABS.filter(c => c.id !== id);
   // 사용 중인 기간에서도 해제
   [compA,compB,compC,compD].forEach(p => { if(p.collab===id){ p.collab=''; p.start=''; p.end=''; } });
@@ -1349,8 +1441,8 @@ function saveCollabEdit(id) {
   const type  = document.getElementById('editCollabType')?.value || 'etc';
   const start = document.getElementById('editCollabStart')?.value;
   const end   = document.getElementById('editCollabEnd')?.value;
-  if (!name || !start || !end) { alert('이름, 시작일, 종료일을 모두 입력해주세요.'); return; }
-  if (start > end) { alert('시작일이 종료일보다 늦습니다.'); return; }
+  if (!name || !start || !end) { alert(t('alertFillAll')); return; }
+  if (start > end) { alert(t('alertDateOrder')); return; }
   c.name = name; c.type = type; c.start = start; c.end = end;
   editingCollabId = null;
   saveCollabsToGH();
@@ -1375,17 +1467,19 @@ function refreshCollabUI() {
   });
 }
 
-const COLLAB_TYPE_LABEL = {spin:'🌀 스핀', crate:'📦 크레이트', etc:'기타'};
+const COLLAB_TYPE_LABEL = () => ({spin:t('collabTypeSpin'), crate:t('collabTypeCrate'), etc:t('collabTypeEtc')});
 
 function collabTypeTag(type) {
   const map = {spin:'collab-tag-spin', crate:'collab-tag-crate', etc:'collab-tag-etc'};
-  return `<span class="collab-type-tag ${map[type]||'collab-tag-etc'}">${COLLAB_TYPE_LABEL[type]||type||'기타'}</span>`;
+  const labels = COLLAB_TYPE_LABEL();
+  return `<span class="collab-type-tag ${map[type]||'collab-tag-etc'}">${labels[type]||type||t('collabTypeEtc')}</span>`;
 }
 
 function collabOptions(selectedId='') {
-  const none = `<option value="">-- 직접 입력 --</option>`;
+  const none = `<option value="">-- ${t('collabDirectInput')} --</option>`;
+  const labels = COLLAB_TYPE_LABEL();
   const opts = COLLABS.map(c => {
-    const typeLabel = COLLAB_TYPE_LABEL[c.type] || c.type || '기타';
+    const typeLabel = labels[c.type] || c.type || t('collabTypeEtc');
     return `<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.name} [${typeLabel}] (${c.start} ~ ${c.end})</option>`;
   }).join('');
   return none + opts;
@@ -1429,16 +1523,16 @@ function renderCollabMgmtBody() {
       <tr class="collab-editing-row">
         <td><input id="editCollabName"  class="collab-edit-input" value="${c.name}" maxlength="20" style="width:100px;"></td>
         <td><select id="editCollabType" class="collab-type-select" style="font-size:10px;padding:4px 5px;">
-              <option value="spin"  ${c.type==='spin' ?'selected':''}>🌀 스핀</option>
-              <option value="crate" ${c.type==='crate'?'selected':''}>📦 크레이트</option>
-              <option value="etc"   ${c.type==='etc'  ?'selected':''}>기타</option>
+              <option value="spin"  ${c.type==='spin' ?'selected':''}>${t('collabTypeSpin')}</option>
+              <option value="crate" ${c.type==='crate'?'selected':''}>${t('collabTypeCrate')}</option>
+              <option value="etc"   ${c.type==='etc'  ?'selected':''}>${t('collabTypeEtc')}</option>
             </select></td>
         <td><input id="editCollabStart" type="date" class="collab-edit-input" value="${c.start}" style="width:115px;"></td>
         <td><input id="editCollabEnd"   type="date" class="collab-edit-input" value="${c.end}"   style="width:115px;"></td>
         <td>—</td>
         <td style="white-space:nowrap;">
-          <button class="collab-save-btn" onclick="saveCollabEdit('${c.id}')">저장</button>
-          <button class="collab-cancel-btn" onclick="cancelCollabEdit()">취소</button>
+          <button class="collab-save-btn" onclick="saveCollabEdit('${c.id}')">${t('collabSaveBtn')}</button>
+          <button class="collab-cancel-btn" onclick="cancelCollabEdit()">${t('collabCancelBtn')}</button>
         </td>
       </tr>`;
         } else {
@@ -1449,7 +1543,7 @@ function renderCollabMgmtBody() {
         <td>${collabTypeTag(c.type)}</td>
         <td>${c.start}</td>
         <td>${c.end}</td>
-        <td>${Math.round((new Date(c.end)-new Date(c.start))/86400000)+1}일</td>
+        <td>${Math.round((new Date(c.end)-new Date(c.start))/86400000)+1}${t('normUnit')}</td>
         <td style="white-space:nowrap;">
           <button class="collab-edit-btn" onclick="editCollab('${c.id}')">✏️</button>
           <button class="collab-del-btn"  onclick="deleteCollab('${c.id}')">✕</button>
@@ -1457,22 +1551,22 @@ function renderCollabMgmtBody() {
       </tr>`;
         }
       }).join('')
-    : `<tr><td colspan="6" style="color:#9ca3af;text-align:center;padding:12px;">등록된 콜라보가 없습니다</td></tr>`;
+    : `<tr><td colspan="6" style="color:#9ca3af;text-align:center;padding:12px;">${t('collabEmpty')}</td></tr>`;
   return `
     <div class="collab-add-row">
-      <input id="newCollabName"  class="collab-name-input" placeholder="콜라보 이름" maxlength="20">
+      <input id="newCollabName"  class="collab-name-input" placeholder="${t('collabNamePh')}" maxlength="20">
       <select id="newCollabType" class="collab-type-select">
-        <option value="spin">🌀 스핀</option>
-        <option value="crate">📦 크레이트</option>
-        <option value="etc">기타</option>
+        <option value="spin">${t('collabTypeSpin')}</option>
+        <option value="crate">${t('collabTypeCrate')}</option>
+        <option value="etc">${t('collabTypeEtc')}</option>
       </select>
       <input id="newCollabStart" type="date" class="collab-date-input">
       <span style="font-size:11px;color:#9ca3af;">~</span>
       <input id="newCollabEnd"   type="date" class="collab-date-input">
-      <button class="collab-add-btn" onclick="addCollab()">+ 추가</button>
+      <button class="collab-add-btn" onclick="addCollab()">${t('collabAddBtn')}</button>
     </div>
     <table class="collab-list-table">
-      <thead><tr><th>이름</th><th>형식</th><th>시작일</th><th>종료일</th><th>기간</th><th></th></tr></thead>
+      <thead><tr><th>${t('collabColName')}</th><th>${t('collabColType')}</th><th>${t('collabColStart')}</th><th>${t('collabColEnd')}</th><th>${t('collabColDur')}</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -1559,7 +1653,7 @@ function getPeriodLabel(key, p) {
     if (c) return c.name;
   }
   const d = getPeriodDates(p);
-  return d.start ? `기간 ${key}` : `기간 ${key}`;
+  return `${t('periodLabelPfx')} ${key}`;
 }
 
 function runComparison() {
@@ -1589,7 +1683,7 @@ function runComparison() {
     cmpPeriods.push({key:k, p, d, color:PERIOD_COLORS[k], thCls:PERIOD_TH[k]});
   });
 
-  if (!cmpPeriods.length) { if(resEl) resEl.innerHTML=`<div class="comp-empty">비교 기간(B/C/D)을 설정해주세요.</div>`; return; }
+  if (!cmpPeriods.length) { if(resEl) resEl.innerHTML=`<div class="comp-empty">${t('compEmptyBCD')}</div>`; return; }
 
   const mDefs = getMetricDefs().filter(m=>compMetrics.has(m.id));
   if (!mDefs.length) return;
@@ -1641,7 +1735,7 @@ function runComparison() {
     <div class="table-block"><div class="tbl-wrap">
       <table class="comp-table">
         <thead><tr>
-          <th>지표</th>
+          <th>${t('compMetricHeader')}</th>
           <th class="th-base"><span class="comp-period-badge badge-a">A</span>${aLbl}<div class="comp-date-sub">${dA.start} ~ ${dA.end}</div></th>
           ${thPeriods}
         </tr></thead>
@@ -1649,7 +1743,7 @@ function runComparison() {
       </table>
     </div></div>
     <div class="comp-chart-card">
-      <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:12px;">A 대비 증감율 (%)</div>
+      <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:12px;">${t('compVsALabel')}</div>
       <div class="comp-chart-wrap"><canvas id="cComp"></canvas></div>
     </div>
   </div>`;
@@ -1670,7 +1764,7 @@ function runComparison() {
         scales:{
           x:{ticks:{color:'#6b7280',font:{size:11,weight:'600'}},grid:{display:false}},
           y:{ticks:{color:'#9ca3af',font:{size:10},callback:v=>v+'%'},grid:{color:'#f3f4f6'},
-             title:{display:true,text:'A 대비 증감율 (%)',color:'#9ca3af',font:{size:10}}}
+             title:{display:true,text:t('compVsALabel'),color:'#9ca3af',font:{size:10}}}
         }
       }
     });
@@ -1687,13 +1781,13 @@ function renderPeriodBox(key, p, badgeCls, label, isBase=false, canDisable=false
       <span class="comp-period-badge ${badgeCls}">${key}</span>
       <span style="font-size:11px;font-weight:700;color:#374151;${isDisabled?'opacity:.45;':''}">${label}</span>
       ${canDisable ? `<label class="period-enable-toggle" style="margin-left:auto;">
-        <input type="checkbox" ${p.active?'checked':''} onchange="togglePeriod('${key}',this.checked)"> 사용
+        <input type="checkbox" ${p.active?'checked':''} onchange="togglePeriod('${key}',this.checked)"> ${t('periodUse')}
       </label>` : ''}
     </div>
     <div style="${isDisabled?'opacity:.4;pointer-events:none;':''}">
       <div class="period-mode-toggle" style="margin-bottom:8px;">
-        <button class="${!isCollab?'active':''}" onclick="setPeriodMode('${key}','manual')">📅 직접 입력</button>
-        <button class="${isCollab?'active':''}" onclick="setPeriodMode('${key}','collab')">🎯 콜라보</button>
+        <button class="${!isCollab?'active':''}" onclick="setPeriodMode('${key}','manual')">${t('periodManual')}</button>
+        <button class="${isCollab?'active':''}" onclick="setPeriodMode('${key}','collab')">${t('periodCollab')}</button>
       </div>
       ${isCollab ? `
         <select id="collabSelect${key}" class="comp-collab-select" onchange="onCollabSelect('${key}',this.value)">
@@ -1726,7 +1820,7 @@ function renderComparePage() {
   <!-- 콜라보 관리 패널 -->
   <div class="collab-mgmt-panel">
     <div class="collab-mgmt-header" onclick="collabMgmtOpen=!collabMgmtOpen;renderComparePageInPlace()">
-      <span class="collab-mgmt-title">🎯 콜라보 관리</span>
+      <span class="collab-mgmt-title">${t('collabMgmtTitle')}</span>
       <span class="collab-mgmt-arrow ${arrowCls}">▼</span>
     </div>
     ${collabMgmtOpen ? `<div id="collabMgmtBody" class="collab-mgmt-body">${renderCollabMgmtBody()}</div>` : ''}
@@ -1741,20 +1835,20 @@ function renderComparePage() {
       <button class="comp-quick-btn" onclick="setQuickCompare('30days')">${t('comp30Days')}</button>
     </div>
     <div class="comp-periods">
-      ${renderPeriodBox('A', compA, 'badge-a', '기준 기간', true,  false)}
-      ${renderPeriodBox('B', compB, 'badge-b', '비교 기간 B', false, false)}
-      ${renderPeriodBox('C', compC, 'badge-c', '비교 기간 C', false, true)}
-      ${renderPeriodBox('D', compD, 'badge-d', '비교 기간 D', false, true)}
+      ${renderPeriodBox('A', compA, 'badge-a', t('periodBase'),  true,  false)}
+      ${renderPeriodBox('B', compB, 'badge-b', t('periodCompB'), false, false)}
+      ${renderPeriodBox('C', compC, 'badge-c', t('periodCompC'), false, true)}
+      ${renderPeriodBox('D', compD, 'badge-d', t('periodCompD'), false, true)}
     </div>
     <div class="norm-days-row">
-      <span class="norm-days-label">📐 기간 통일</span>
+      <span class="norm-days-label">${t('normLabel')}</span>
       <input type="number" id="normDaysInput" class="norm-days-input" min="1" max="365"
-        placeholder="일수 미입력 시 각 기간 그대로"
+        placeholder="${t('normPlaceholder')}"
         value="${normDays}"
         oninput="normDays=this.value">
-      <span class="norm-days-unit">일</span>
-      ${normDays ? `<button class="norm-days-clear" onclick="normDays='';document.getElementById('normDaysInput').value='';renderComparePageInPlace()">✕ 해제</button>
-        <span class="norm-days-hint">개시일 기준 ${normDays}일로 통일</span>` : `<span class="norm-days-hint" style="color:#9ca3af;">비워두면 각 기간 그대로 사용</span>`}
+      <span class="norm-days-unit">${t('normUnit')}</span>
+      ${normDays ? `<button class="norm-days-clear" onclick="normDays='';document.getElementById('normDaysInput').value='';renderComparePageInPlace()">${t('normClear')}</button>
+        <span class="norm-days-hint">${lang==='ja'?`開始日基準${normDays}日で統一`:`개시일 기준 ${normDays}일로 통일`}</span>` : `<span class="norm-days-hint" style="color:#9ca3af;">${t('normHintInactive')}</span>`}
     </div>
     <div class="comp-metrics-label">${t('compMetricsLabel')} <span style="color:#9ca3af;font-weight:400;">${t('compMetricsHint')}</span></div>
     <div class="metric-selector">${metricBtns}</div>
@@ -1923,7 +2017,7 @@ function renderOverviewChart(hasTrf, hasRev) {
         ${reg==='jp'?`
         <div class="combo-legend-item" style="gap:3px;margin-left:4px;border-left:1px solid #e3e8f0;padding-left:8px;">
           <svg width="10" height="12"><rect width="10" height="12" rx="2" fill="rgba(220,38,38,0.72)"/></svg>
-          <span style="font-size:9px;color:#dc2626;font-weight:700;">주요상품 판매일</span>
+          <span style="font-size:9px;color:#dc2626;font-weight:700;">${t('chartSalesDay')}</span>
         </div>`:''}
       </div>
     </div>
@@ -1972,8 +2066,8 @@ function renderDetailCharts(hasTrf, hasRev) {
         <span class="badge badge-trf">T-LOG · ${reg.toUpperCase()}</span>
       </div>
       <div class="chart-row">
-        <div class="chart-card"><div class="chart-label">DAU 추이</div><div class="chart-wrap"><canvas id="cDau"></canvas></div></div>
-        <div class="chart-card"><div class="chart-label">NRU / Return 추이</div><div class="chart-wrap"><canvas id="cNruRet"></canvas></div></div>
+        <div class="chart-card"><div class="chart-label">${t('chartDau')}</div><div class="chart-wrap"><canvas id="cDau"></canvas></div></div>
+        <div class="chart-card"><div class="chart-label">${t('chartNruRet')}</div><div class="chart-wrap"><canvas id="cNruRet"></canvas></div></div>
       </div>
     </div>`;
   }
@@ -1987,9 +2081,9 @@ function renderDetailCharts(hasTrf, hasRev) {
         <span class="badge badge-rev">BILLING · ${reg.toUpperCase()}</span>
       </div>
       <div class="chart-row-3">
-        <div class="chart-card"><div class="chart-label">Revenue(${unit2}) 추이</div><div class="chart-wrap"><canvas id="cRev"></canvas></div></div>
-        <div class="chart-card"><div class="chart-label">PU(막대) / PUR%(선) 추이</div><div class="chart-wrap"><canvas id="cPuPur"></canvas></div></div>
-        <div class="chart-card"><div class="chart-label">ARPPU(막대) / ARPU(선) 추이</div><div class="chart-wrap"><canvas id="cArppuArpu"></canvas></div></div>
+        <div class="chart-card"><div class="chart-label">Revenue(${unit2}) ${lang==='ja'?'推移':'추이'}</div><div class="chart-wrap"><canvas id="cRev"></canvas></div></div>
+        <div class="chart-card"><div class="chart-label">${t('chartPuPur')}</div><div class="chart-wrap"><canvas id="cPuPur"></canvas></div></div>
+        <div class="chart-card"><div class="chart-label">${t('chartArppuArpu')}</div><div class="chart-wrap"><canvas id="cArppuArpu"></canvas></div></div>
       </div>
     </div>`;
   }
@@ -2026,7 +2120,7 @@ function toggleStepSection() {
             const last = data[data.length - 1];
             if (latestEl && last) {
               const ratio = last.step1_dau ? ((last.step2_dau/last.step1_dau)*100).toFixed(1)+'%' : '-';
-              latestEl.textContent = '최신 Genuine Ratio: ' + ratio + ' · ' + last.date;
+              latestEl.textContent = t('stepLatestLabel') + ' ' + ratio + ' · ' + last.date;
             }
           }
           initStepCharts();
@@ -2101,7 +2195,7 @@ function initStepCharts() {
 function buildStepRows() {
   const classificationData = getClsData();
   const recent14 = classificationData.length ? classificationData.slice(-7).reverse() : [];
-  if (!recent14.length) return '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:12px;">데이터 로딩 중...</td></tr>';
+  if (!recent14.length) return `<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:12px;">${t('stepLoading')}</td></tr>`;
   return recent14.map(r => {
     const ratio = r.step1_dau ? ((r.step2_dau / r.step1_dau) * 100).toFixed(1) : '-';
     const barW  = r.step1_dau ? Math.round((r.step2_dau / r.step1_dau) * 80) : 0;
@@ -2121,16 +2215,16 @@ function renderClassificationSection() {
   const latest = classificationData.length ? classificationData[classificationData.length - 1] : null;
   const latestRatio = latest && latest.step1_dau
     ? ((latest.step2_dau / latest.step1_dau) * 100).toFixed(1) + '%'
-    : (classificationData.length ? '-' : '로딩 중...');
+    : (classificationData.length ? '-' : t('autoLoadMsgFetching'));
 
   return `
   <div class="step-collapse">
     <div class="step-collapse-header" onclick="toggleStepSection()">
       <div class="step-collapse-title">
-        📊 트래픽 세분화 분석
+        ${t('stepTitle')}
         <span class="step-badge-1">Step1</span>
         <span class="step-badge-2">Step2</span>
-        <span id="stepLatestRatio" style="font-size:10px;color:#9ca3af;font-weight:400;">최신 Genuine Ratio: ${latestRatio} · ${latest?.date || ''}</span>
+        <span id="stepLatestRatio" style="font-size:10px;color:#9ca3af;font-weight:400;">${t('stepLatestLabel')} ${latestRatio} · ${latest?.date || ''}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
         ${(()=>{
@@ -2144,8 +2238,8 @@ function renderClassificationSection() {
     </div>
     <div class="step-collapse-body ${stepSectionOpen ? 'open' : ''}" id="stepBody">
       <div class="step-chart-row">
-        <div class="chart-card"><div class="chart-label">Step1 vs Step2 DAU 비교 (최근 90일)</div><div class="chart-wrap"><canvas id="cStep1v2"></canvas></div></div>
-        <div class="chart-card"><div class="chart-label">Genuine Ratio % (최근 90일)</div><div class="chart-wrap"><canvas id="cStepRatio"></canvas></div></div>
+        <div class="chart-card"><div class="chart-label">${t('stepChartDau')}</div><div class="chart-wrap"><canvas id="cStep1v2"></canvas></div></div>
+        <div class="chart-card"><div class="chart-label">${t('stepChartRatio')}</div><div class="chart-wrap"><canvas id="cStepRatio"></canvas></div></div>
       </div>
       <div class="step-table-scroll">
         <table class="step-table">
@@ -2390,18 +2484,18 @@ function renderPeriodCtrl(prefix, days, start, end, minD, maxD) {
   const hasCustom = !!(start && end);
   const caps = prefix.charAt(0).toUpperCase() + prefix.slice(1);
   const btns = [7,30,60,90].map(d =>
-    `<button class="pill ${!hasCustom && days===d?'active':''}" onclick="set${caps}Days(${d})">${d}일</button>`
+    `<button class="pill ${!hasCustom && days===d?'active':''}" onclick="set${caps}Days(${d})">${d}${t('dayUnit')}</button>`
   ).join('');
   return `<div class="ctrl-bar">
-    <span class="ctrl-label">조회 기간</span>
+    <span class="ctrl-label">${t('ctrlLabel')}</span>
     <div class="pill-group">${btns}</div>
     <input type="date" id="${prefix}StartInput" class="range-date-input${hasCustom?' active':''}"
       value="${start}" min="${minD}" max="${maxD}">
     <span style="color:#9ca3af;font-size:11px;margin:0 2px;">~</span>
     <input type="date" id="${prefix}EndInput" class="range-date-input${hasCustom?' active':''}"
       value="${end}" min="${minD}" max="${maxD}">
-    <button class="range-apply-btn" onclick="apply${caps}Range()">적용</button>
-    ${hasCustom?`<button class="range-reset-btn" onclick="reset${caps}Range()">초기화</button>`:''}
+    <button class="range-apply-btn" onclick="apply${caps}Range()">${t('rangeApplyBtn')}</button>
+    ${hasCustom?`<button class="range-reset-btn" onclick="reset${caps}Range()">${t('rangeResetBtn')}</button>`:''}
   </div>`;
 }
 
@@ -2410,8 +2504,8 @@ function setOverviewDays(d) { overviewDays=d; overviewStart=''; overviewEnd=''; 
 function applyOverviewRange() {
   const s=document.getElementById('overviewStartInput')?.value;
   const e=document.getElementById('overviewEndInput')?.value;
-  if(!s||!e){alert('시작일과 종료일을 모두 입력해주세요.');return;}
-  if(s>e){alert('시작일이 종료일보다 늦습니다.');return;}
+  if(!s||!e){alert(t('alertRangeFill'));return;}
+  if(s>e){alert(t('alertDateOrder'));return;}
   overviewStart=s; overviewEnd=e; overviewDays=0; render();
 }
 function resetOverviewRange() { overviewStart=''; overviewEnd=''; overviewDays=60; render(); }
@@ -2421,8 +2515,8 @@ function setRangeDays(d) { rangeDays=d; rangeStart=''; rangeEnd=''; render(); }
 function applyRangeRange() {
   const s=document.getElementById('rangeStartInput')?.value;
   const e=document.getElementById('rangeEndInput')?.value;
-  if(!s||!e){alert('시작일과 종료일을 모두 입력해주세요.');return;}
-  if(s>e){alert('시작일이 종료일보다 늦습니다.');return;}
+  if(!s||!e){alert(t('alertRangeFill'));return;}
+  if(s>e){alert(t('alertDateOrder'));return;}
   rangeStart=s; rangeEnd=e; rangeDays=0; render();
 }
 function resetRangeRange() { rangeStart=''; rangeEnd=''; rangeDays=30; render(); }
@@ -2434,8 +2528,8 @@ function setStepDays(d) { stepDays=d; stepStart=''; stepEnd=''; initStepCharts()
 function applyStepRange() {
   const s=document.getElementById('stepStartInput')?.value;
   const e=document.getElementById('stepEndInput')?.value;
-  if(!s||!e){alert('시작일과 종료일을 모두 입력해주세요.');return;}
-  if(s>e){alert('시작일이 종료일보다 늦습니다.');return;}
+  if(!s||!e){alert(t('alertRangeFill'));return;}
+  if(s>e){alert(t('alertDateOrder'));return;}
   stepStart=s; stepEnd=e; stepDays=0; initStepCharts();
 }
 function resetStepRange() { stepStart=''; stepEnd=''; stepDays=90; initStepCharts(); }
@@ -2548,7 +2642,7 @@ async function loadDatabricks(reg) {
   const BASE = 'https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/';
   const ts   = '?t=' + Date.now();
   const msg  = document.getElementById('autoLoadMsg');
-  if (msg) msg.textContent = '불러오는 중...';
+  if (msg) msg.textContent = t('autoLoadMsgFetching');
 
   let loaded = false;
   try {
@@ -2580,14 +2674,14 @@ async function loadDatabricks(reg) {
     }
     if (loaded) {
       const latest = trfData?.length ? isoDate(trfData[trfData.length-1][0]) : '';
-      if (msg) msg.textContent = `최신 데이터: ${latest} · Databricks 자동 연동`;
+      if (msg) msg.textContent = `${t('autoLoadMsgLatest')}: ${latest} · ${t('autoConnected')}`;
       render();
     } else {
-      if (msg) msg.textContent = '데이터 없음 — GitHub 업로드 확인 필요';
+      if (msg) msg.textContent = t('autoLoadMsgEmpty');
     }
   } catch(e) {
     console.error('loadDatabricks 실패:', e);
-    if (msg) msg.textContent = '로드 실패: ' + e.message;
+    if (msg) msg.textContent = t('autoLoadMsgFail') + ': ' + e.message;
   }
   return loaded;
 }
