@@ -145,5 +145,12 @@
     "start": "2025-06-16",
     "end": "2025-07-16",
     "type": "spin"
+  },
+  {
+    "id": "c_obqsbr2",
+    "name": "HoushouMarine",
+    "start": "2025-09-10",
+    "end": "2025-10-09",
+    "type": "spin"
   }
 ]
