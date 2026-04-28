@@ -352,6 +352,11 @@
     .collab-list-table tr:last-child td { border-bottom:none; }
     .collab-del-btn { border:none; background:none; color:#ef4444; cursor:pointer; font-size:13px; font-weight:700; padding:0 4px; }
     .collab-del-btn:hover { color:#dc2626; }
+    .collab-type-tag { display:inline-block; padding:1px 7px; border-radius:10px; font-size:10px; font-weight:700; line-height:1.6; white-space:nowrap; }
+    .collab-tag-spin  { background:#ede9fe; color:#6d28d9; }
+    .collab-tag-crate { background:#fef3c7; color:#b45309; }
+    .collab-tag-etc   { background:#f3f4f6; color:#6b7280; }
+    .collab-type-select { border:1px solid #e3e8f0; border-radius:6px; padding:6px 7px; font-size:11px; color:#374151; outline:none; background:#fff; cursor:pointer; }
     /* result table multi-period */
     .comp-table th.th-base { background:#eff6ff; color:#2563eb; }
     .comp-table th.th-b { background:#f8fafc; color:#475569; }
@@ -1292,9 +1297,10 @@ function addCollab() {
   const name  = document.getElementById('newCollabName')?.value?.trim();
   const start = document.getElementById('newCollabStart')?.value;
   const end   = document.getElementById('newCollabEnd')?.value;
+  const type  = document.getElementById('newCollabType')?.value || 'etc';
   if (!name || !start || !end) { alert('이름, 시작일, 종료일을 모두 입력해주세요.'); return; }
   if (start > end) { alert('시작일이 종료일보다 늦습니다.'); return; }
-  COLLABS.push({id: uid(), name, start, end});
+  COLLABS.push({id: uid(), name, start, end, type});
   saveCollabsToGH();
   document.getElementById('newCollabName').value = '';
   document.getElementById('newCollabStart').value = '';
@@ -1324,11 +1330,19 @@ function refreshCollabUI() {
   });
 }
 
+const COLLAB_TYPE_LABEL = {spin:'🌀 스핀', crate:'📦 크레이트', etc:'기타'};
+
+function collabTypeTag(type) {
+  const map = {spin:'collab-tag-spin', crate:'collab-tag-crate', etc:'collab-tag-etc'};
+  return `<span class="collab-type-tag ${map[type]||'collab-tag-etc'}">${COLLAB_TYPE_LABEL[type]||type||'기타'}</span>`;
+}
+
 function collabOptions(selectedId='') {
   const none = `<option value="">-- 직접 입력 --</option>`;
-  const opts = COLLABS.map(c =>
-    `<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.name} (${c.start} ~ ${c.end})</option>`
-  ).join('');
+  const opts = COLLABS.map(c => {
+    const typeLabel = COLLAB_TYPE_LABEL[c.type] || c.type || '기타';
+    return `<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.name} [${typeLabel}] (${c.start} ~ ${c.end})</option>`;
+  }).join('');
   return none + opts;
 }
 
@@ -1366,22 +1380,28 @@ function renderCollabMgmtBody() {
     ? COLLABS.map(c=>`
       <tr>
         <td><strong>${c.name}</strong></td>
+        <td>${collabTypeTag(c.type)}</td>
         <td>${c.start}</td>
         <td>${c.end}</td>
         <td>${Math.round((new Date(c.end)-new Date(c.start))/86400000)+1}일</td>
         <td><button class="collab-del-btn" onclick="deleteCollab('${c.id}')">✕</button></td>
       </tr>`).join('')
-    : `<tr><td colspan="5" style="color:#9ca3af;text-align:center;padding:12px;">등록된 콜라보가 없습니다</td></tr>`;
+    : `<tr><td colspan="6" style="color:#9ca3af;text-align:center;padding:12px;">등록된 콜라보가 없습니다</td></tr>`;
   return `
     <div class="collab-add-row">
       <input id="newCollabName"  class="collab-name-input" placeholder="콜라보 이름" maxlength="20">
+      <select id="newCollabType" class="collab-type-select">
+        <option value="spin">🌀 스핀</option>
+        <option value="crate">📦 크레이트</option>
+        <option value="etc">기타</option>
+      </select>
       <input id="newCollabStart" type="date" class="collab-date-input">
       <span style="font-size:11px;color:#9ca3af;">~</span>
       <input id="newCollabEnd"   type="date" class="collab-date-input">
       <button class="collab-add-btn" onclick="addCollab()">+ 추가</button>
     </div>
     <table class="collab-list-table">
-      <thead><tr><th>이름</th><th>시작일</th><th>종료일</th><th>기간</th><th></th></tr></thead>
+      <thead><tr><th>이름</th><th>형식</th><th>시작일</th><th>종료일</th><th>기간</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
