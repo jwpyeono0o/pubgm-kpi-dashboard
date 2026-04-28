@@ -124,5 +124,12 @@
     "start": "2025-02-01",
     "end": "2025-02-28",
     "type": "spin"
+  },
+  {
+    "id": "c_cj2jhlw",
+    "name": "Frieren",
+    "start": "2025-04-01",
+    "end": "2025-04-30",
+    "type": "crate"
   }
 ]
