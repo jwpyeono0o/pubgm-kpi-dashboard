@@ -138,5 +138,12 @@
     "start": "2025-05-30",
     "end": "2025-07-06",
     "type": "etc"
+  },
+  {
+    "id": "c_2p2e9kw",
+    "name": "SakuraMiko",
+    "start": "2025-06-16",
+    "end": "2025-07-16",
+    "type": "spin"
   }
 ]
