@@ -511,14 +511,13 @@
       </div>
       <div class="ds-item">
         <span class="ds-badge ds-jp">JP Sales</span>
-        <span class="ds-item-text">Overall Schedule_2025.xlsx › JP 시트 › AH열</span>
+        <span class="ds-item-text">Overall Schedule_2024.xlsx › JP 시트 › AH열</span>
         <a href="https://blueholestudio.sharepoint.com/:x:/s/PUBGM_HQ2/EYWhjZh6DJZPkwlPnzMw1xgB4b6gLvg--PysBdFWOpRAIg?e=vs6eta" target="_blank" class="ds-link">🔗</a>
         <span class="ds-auto">⚡ 자동 연동</span>
       </div>
       <div class="ds-item">
         <span class="ds-badge ds-cls">Step1/2</span>
-        <span class="ds-item-text">Tableau › Traffic by Country Classification Step › DAU / Genuine Ratio</span>
-        <a href="https://prod-useast-a.online.tableau.com/#/site/kraftonbi/views/WIPPUBGMTrafficDatabyCountryClassificationStep/DownloadDailyTraffic" target="_blank" class="ds-link">🔗</a>
+        <span class="ds-item-text">Databricks › pubgm_bi.traffic_active_user_daily › Step1(전체) / Step2(login_ip=country 진성)</span>
         <span class="ds-auto">⚡ 자동 연동</span>
       </div>
       <div class="ds-item">
@@ -557,8 +556,8 @@
 // ⚡ 자동 연동: fetch_jp_sales.py 가 매일 data/jp_sales.json 을 GitHub에 업로드
 // ⚠️  아직 초기 설정 전이라면 아래 폴백 데이터가 사용됩니다
 // ── Step1/Step2 트래픽 세분화 데이터 ──────────────────────────
-// 📂 Source: Tableau > WIPPUBGMTrafficDatabyCountryClassificationStep > DownloadDailyTraffic
-// ⚡ 자동 연동: fetch_traffic.py 가 매일 data/traffic_classification.json 을 GitHub에 업로드
+// 📂 Source: Databricks > pubgm_bi.traffic_active_user_daily
+// ⚡ 자동 연동: fetch_classification.py 가 매일 data/traffic_classification.json 을 GitHub에 업로드
 let classificationData   = []; // JP [{date, step1_dau, step2_dau, ...}, ...]
 let classificationDataKR = []; // KR [{date, step1_dau, step2_dau, ...}, ...]
 let stepSectionOpen = false;
