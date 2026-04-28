@@ -117,5 +117,12 @@
     "start": "2025-01-14",
     "end": "2025-03-13",
     "type": "crate"
+  },
+  {
+    "id": "c_tpgalix",
+    "name": "NatsuiroMatsuri",
+    "start": "2025-02-01",
+    "end": "2025-02-28",
+    "type": "spin"
   }
 ]
