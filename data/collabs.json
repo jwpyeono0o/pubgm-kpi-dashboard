@@ -110,5 +110,12 @@
     "start": "2024-12-13",
     "end": "2025-01-05",
     "type": "spin"
+  },
+  {
+    "id": "c_4bj0g79",
+    "name": "OpanchuUsagi",
+    "start": "2025-01-14",
+    "end": "2025-03-13",
+    "type": "crate"
   }
 ]
