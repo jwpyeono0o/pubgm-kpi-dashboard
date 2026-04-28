@@ -129,6 +129,7 @@
     }
     table.data-table thead tr.hdr-section th.th-date {
       background:#475569; text-align:left;
+      position:sticky; left:0; z-index:5;
     }
     table.data-table thead tr.hdr-section th.th-traffic {
       background:#1d6fa4;
@@ -1647,12 +1648,11 @@ function getPeriodDates(p) {
   return {start, end};
 }
 
-function getPeriodLabel(key, p) {
+function getCompPeriodLabel(key, p) {
   if (p.mode==='collab' && p.collab) {
     const c = COLLABS.find(x=>x.id===p.collab);
     if (c) return c.name;
   }
-  const d = getPeriodDates(p);
   return `${t('periodLabelPfx')} ${key}`;
 }
 
@@ -1692,7 +1692,7 @@ function runComparison() {
 
   // 테이블 헤더
   const thPeriods = cmpPeriods.map(cp => {
-    const lbl = getPeriodLabel(cp.key, cp.p);
+    const lbl = getCompPeriodLabel(cp.key, cp.p);
     const d = cp.d;
     return `<th class="${cp.thCls}"><span class="comp-period-badge badge-${cp.key.toLowerCase()}">${cp.key}</span>${lbl}<div class="comp-date-sub">${d.start} ~ ${d.end}</div></th>`;
   }).join('');
@@ -1700,7 +1700,7 @@ function runComparison() {
   // 차트용 데이터셋 준비
   const chartLabels = mDefs.map(m=>m.label);
   const datasets = cmpPeriods.map(cp => ({
-    label: `${cp.key}: ${getPeriodLabel(cp.key,cp.p)} vs A`,
+    label: `${cp.key}: ${getCompPeriodLabel(cp.key,cp.p)} vs A`,
     data: [],
     backgroundColor: cp.color + 'BF',
     borderColor: cp.color,
@@ -1729,7 +1729,7 @@ function runComparison() {
     tableRows += `<tr><td>${m.label}</td><td style="font-weight:600;">${fmtA}</td>${cmpCells}</tr>`;
   });
 
-  const aLbl = getPeriodLabel('A', compA);
+  const aLbl = getCompPeriodLabel('A', compA);
   if (resEl) resEl.innerHTML=`
   <div class="comp-results">
     <div class="table-block"><div class="tbl-wrap">
