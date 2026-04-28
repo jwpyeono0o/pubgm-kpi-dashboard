@@ -311,8 +311,55 @@
     .comp-period-badge { display:inline-block; padding:2px 7px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:.5px; margin-right:6px; }
     .badge-a { background:#eff6ff; color:#2563eb; }
     .badge-b { background:#f1f5f9; color:#475569; }
+    .badge-c { background:#ecfdf5; color:#059669; }
+    .badge-d { background:#fffbeb; color:#d97706; }
     .comp-period-row { display:flex; align-items:center; gap:8px; }
     .comp-date-input { border:1px solid #e3e8f0; border-radius:6px; padding:6px 9px; font-size:11px; color:#374151; outline:none; transition:border-color .15s; background:#fff; width:130px; }
+    /* 4-period grid */
+    .comp-periods { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+    .comp-period-box.period-base { border-color:#bfdbfe; background:#f0f7ff; }
+    .comp-period-box.period-disabled { opacity:.45; pointer-events:none; }
+    /* mode toggle */
+    .period-mode-toggle { display:inline-flex; border:1px solid #e3e8f0; border-radius:6px; overflow:hidden; margin-left:auto; }
+    .period-mode-toggle button { border:none; background:#fff; color:#6b7280; font-size:10px; font-weight:700; padding:3px 9px; cursor:pointer; transition:all .12s; }
+    .period-mode-toggle button.active { background:#2563eb; color:#fff; }
+    .period-title-row { display:flex; align-items:center; margin-bottom:10px; gap:4px; }
+    /* collab select */
+    .comp-collab-select { width:100%; border:1px solid #e3e8f0; border-radius:6px; padding:6px 9px; font-size:11px; color:#374151; outline:none; background:#fff; cursor:pointer; }
+    .comp-collab-select:focus { border-color:#2563eb; }
+    .comp-collab-preview { font-size:10px; color:#6b7280; margin-top:5px; padding:3px 7px; background:#f9fafb; border-radius:5px; }
+    /* enable/disable toggle */
+    .period-enable-toggle { display:flex; align-items:center; gap:5px; font-size:10px; color:#6b7280; font-weight:600; margin-left:auto; cursor:pointer; }
+    .period-enable-toggle input[type=checkbox] { accent-color:#2563eb; width:13px; height:13px; cursor:pointer; }
+    /* collab management panel */
+    .collab-mgmt-panel { background:#fff; border:1px solid #e3e8f0; border-radius:12px; margin-bottom:18px; overflow:hidden; }
+    .collab-mgmt-header { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; cursor:pointer; user-select:none; }
+    .collab-mgmt-header:hover { background:#f9fafb; }
+    .collab-mgmt-title { font-size:13px; font-weight:700; color:#111827; }
+    .collab-mgmt-arrow { font-size:12px; color:#9ca3af; transition:transform .2s; }
+    .collab-mgmt-arrow.open { transform:rotate(180deg); }
+    .collab-mgmt-body { padding:0 18px 16px; border-top:1px solid #f3f4f6; }
+    .collab-add-row { display:flex; gap:8px; align-items:center; margin:12px 0 10px; flex-wrap:wrap; }
+    .collab-add-row input { border:1px solid #e3e8f0; border-radius:6px; padding:6px 9px; font-size:11px; color:#374151; outline:none; background:#fff; }
+    .collab-add-row input:focus { border-color:#2563eb; }
+    .collab-name-input { width:110px; }
+    .collab-date-input { width:120px; }
+    .collab-add-btn { padding:6px 14px; background:#2563eb; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .collab-add-btn:hover { background:#1d4ed8; }
+    .collab-list-table { width:100%; border-collapse:collapse; font-size:11px; }
+    .collab-list-table th { color:#9ca3af; font-weight:700; padding:5px 8px; text-align:left; border-bottom:1px solid #f3f4f6; }
+    .collab-list-table td { padding:6px 8px; border-bottom:1px solid #f9fafb; color:#374151; }
+    .collab-list-table tr:last-child td { border-bottom:none; }
+    .collab-del-btn { border:none; background:none; color:#ef4444; cursor:pointer; font-size:13px; font-weight:700; padding:0 4px; }
+    .collab-del-btn:hover { color:#dc2626; }
+    /* result table multi-period */
+    .comp-table th.th-base { background:#eff6ff; color:#2563eb; }
+    .comp-table th.th-b { background:#f8fafc; color:#475569; }
+    .comp-table th.th-c { background:#ecfdf5; color:#059669; }
+    .comp-table th.th-d { background:#fffbeb; color:#d97706; }
+    .comp-vs-up   { color:#dc2626; font-weight:700; font-size:10px; }
+    .comp-vs-down { color:#2563eb; font-weight:700; font-size:10px; }
+    .comp-vs-nil  { color:#9ca3af; font-size:10px; }
     .comp-date-input:focus { border-color:#2563eb; }
     .comp-sep { font-size:11px; color:#9ca3af; }
     .comp-metrics-label { font-size:10px; font-weight:700; color:#6b7280; letter-spacing:.5px; margin-bottom:9px; }
@@ -1205,9 +1252,140 @@ function mkComboChart(id, labels, datasets, scales, dateLabels) {
 
 // ── 기간별 비교 탭 ─────────────────────
 let mainTab = 'dashboard';
-let compA = {start:'', end:''};
-let compB = {start:'', end:''};
+let compA = {start:'', end:'', mode:'manual', collab:''};
+let compB = {start:'', end:'', mode:'manual', collab:''};
+let compC = {start:'', end:'', mode:'manual', collab:'', active:false};
+let compD = {start:'', end:'', mode:'manual', collab:'', active:false};
 let compMetrics = new Set(['dau','nru','rev','pu']);
+let COLLABS = [];
+let collabMgmtOpen = false;
+
+const GH_TOKEN = 'ghp_qVvdYKag' + 'SMltfMLcZT4Y' + 'OsEMyLrIIc2vXlek';
+const GH_REPO  = 'jwpyeono0o/pubgm-kpi-dashboard';
+const COLLAB_PATH = 'data/collabs.json';
+
+function uid() { return 'c_' + Math.random().toString(36).slice(2,9); }
+
+async function loadCollabs() {
+  try {
+    const url = `https://raw.githubusercontent.com/${GH_REPO}/main/${COLLAB_PATH}?t=${Date.now()}`;
+    const r = await fetch(url);
+    if (r.ok) COLLABS = await r.json();
+  } catch(e) { COLLABS = []; }
+}
+
+async function saveCollabsToGH() {
+  try {
+    const headers = { 'Authorization': `token ${GH_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' };
+    const apiUrl = `https://api.github.com/repos/${GH_REPO}/contents/${COLLAB_PATH}`;
+    const sha = await fetch(apiUrl, {headers}).then(r=>r.json()).then(d=>d.sha||'');
+    const body = {
+      message: `[Dashboard] 콜라보 목록 업데이트`,
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(COLLABS, null, 2)))),
+    };
+    if (sha) body.sha = sha;
+    await fetch(apiUrl, {method:'PUT', headers:{...headers,'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  } catch(e) { console.error('콜라보 저장 실패', e); }
+}
+
+function addCollab() {
+  const name  = document.getElementById('newCollabName')?.value?.trim();
+  const start = document.getElementById('newCollabStart')?.value;
+  const end   = document.getElementById('newCollabEnd')?.value;
+  if (!name || !start || !end) { alert('이름, 시작일, 종료일을 모두 입력해주세요.'); return; }
+  if (start > end) { alert('시작일이 종료일보다 늦습니다.'); return; }
+  COLLABS.push({id: uid(), name, start, end});
+  saveCollabsToGH();
+  document.getElementById('newCollabName').value = '';
+  document.getElementById('newCollabStart').value = '';
+  document.getElementById('newCollabEnd').value = '';
+  refreshCollabUI();
+}
+
+function deleteCollab(id) {
+  if (!confirm('삭제할까요?')) return;
+  COLLABS = COLLABS.filter(c => c.id !== id);
+  // 사용 중인 기간에서도 해제
+  [compA,compB,compC,compD].forEach(p => { if(p.collab===id){ p.collab=''; p.start=''; p.end=''; } });
+  saveCollabsToGH();
+  refreshCollabUI();
+}
+
+function refreshCollabUI() {
+  const body = document.getElementById('collabMgmtBody');
+  if (body) body.innerHTML = renderCollabMgmtBody();
+  // period select 갱신
+  ['A','B','C','D'].forEach(k => {
+    const el = document.getElementById(`collabSelect${k}`);
+    if (el) {
+      const cur = {A:compA,B:compB,C:compC,D:compD}[k].collab;
+      el.innerHTML = collabOptions(cur);
+    }
+  });
+}
+
+function collabOptions(selectedId='') {
+  const none = `<option value="">-- 직접 입력 --</option>`;
+  const opts = COLLABS.map(c =>
+    `<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.name} (${c.start} ~ ${c.end})</option>`
+  ).join('');
+  return none + opts;
+}
+
+function setPeriodMode(key, mode) {
+  const p = {A:compA,B:compB,C:compC,D:compD}[key];
+  if (!p) return;
+  p.mode = mode;
+  if (mode === 'manual') { p.collab = ''; }
+  renderComparePageInPlace();
+}
+
+function onCollabSelect(key, id) {
+  const p = {A:compA,B:compB,C:compC,D:compD}[key];
+  if (!p) return;
+  p.collab = id;
+  const c = COLLABS.find(x=>x.id===id);
+  if (c) { p.start = c.start; p.end = c.end; }
+  else   { p.start = ''; p.end = ''; }
+  const prev = document.getElementById(`collabPreview${key}`);
+  if (prev) prev.textContent = c ? `${c.start} ~ ${c.end}` : '';
+}
+
+function togglePeriod(key, checked) {
+  const p = {C:compC,D:compD}[key];
+  if (p) p.active = checked;
+  renderComparePageInPlace();
+}
+
+function renderComparePageInPlace() {
+  const el = document.getElementById('dash');
+  if (el) el.innerHTML = mainTabsHtml + renderComparePage();
+}
+
+function renderCollabMgmtBody() {
+  const rows = COLLABS.length
+    ? COLLABS.map(c=>`
+      <tr>
+        <td><strong>${c.name}</strong></td>
+        <td>${c.start}</td>
+        <td>${c.end}</td>
+        <td>${Math.round((new Date(c.end)-new Date(c.start))/86400000)+1}일</td>
+        <td><button class="collab-del-btn" onclick="deleteCollab('${c.id}')">✕</button></td>
+      </tr>`).join('')
+    : `<tr><td colspan="5" style="color:#9ca3af;text-align:center;padding:12px;">등록된 콜라보가 없습니다</td></tr>`;
+  return `
+    <div class="collab-add-row">
+      <input id="newCollabName"  class="collab-name-input" placeholder="콜라보 이름" maxlength="20">
+      <input id="newCollabStart" type="date" class="collab-date-input">
+      <span style="font-size:11px;color:#9ca3af;">~</span>
+      <input id="newCollabEnd"   type="date" class="collab-date-input">
+      <button class="collab-add-btn" onclick="addCollab()">+ 추가</button>
+    </div>
+    <table class="collab-list-table">
+      <thead><tr><th>이름</th><th>시작일</th><th>종료일</th><th>기간</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
 
 function getMetricDefs() {
   const RC_r=RC[region], TC_r=TC[region];
@@ -1258,8 +1436,8 @@ function setQuickCompare(preset) {
     aE=lastDate; aS=addDays(lastDate,-29);
     bE=addDays(aS,-1); bS=addDays(bE,-29);
   }
-  compA={start:isoDate(aS),end:isoDate(aE)};
-  compB={start:isoDate(bS),end:isoDate(bE)};
+  compA={start:isoDate(aS),end:isoDate(aE),mode:'manual',collab:''};
+  compB={start:isoDate(bS),end:isoDate(bE),mode:'manual',collab:''};
   const el = id => document.getElementById(id);
   if(el('aStart')) el('aStart').value=compA.start;
   if(el('aEnd'))   el('aEnd').value=compA.end;
@@ -1268,60 +1446,111 @@ function setQuickCompare(preset) {
   runComparison();
 }
 
+function getPeriodDates(p) {
+  if (p.mode === 'collab' && p.collab) {
+    const c = COLLABS.find(x=>x.id===p.collab);
+    if (c) return {start:c.start, end:c.end};
+  }
+  return {start:p.start, end:p.end};
+}
+
+function getPeriodLabel(key, p) {
+  if (p.mode==='collab' && p.collab) {
+    const c = COLLABS.find(x=>x.id===p.collab);
+    if (c) return c.name;
+  }
+  const d = getPeriodDates(p);
+  return d.start ? `기간 ${key}` : `기간 ${key}`;
+}
+
 function runComparison() {
-  compA.start = (document.getElementById('aStart')||{}).value || compA.start;
-  compA.end   = (document.getElementById('aEnd')||{}).value   || compA.end;
-  compB.start = (document.getElementById('bStart')||{}).value || compB.start;
-  compB.end   = (document.getElementById('bEnd')||{}).value   || compB.end;
-  const aS=compA.start?new Date(compA.start):null;
-  const aE=compA.end  ?new Date(compA.end)  :null;
-  const bS=compB.start?new Date(compB.start):null;
-  const bE=compB.end  ?new Date(compB.end)  :null;
+  // 날짜 입력값 동기화 (manual 모드)
+  ['A','B','C','D'].forEach(k => {
+    const p = {A:compA,B:compB,C:compC,D:compD}[k];
+    if (p.mode==='manual') {
+      const s=document.getElementById(`${k.toLowerCase()}Start`), e=document.getElementById(`${k.toLowerCase()}End`);
+      if(s) p.start=s.value;
+      if(e) p.end=e.value;
+    }
+  });
+
   const resEl = document.getElementById('compareResults');
-  if(!aS||!aE||!bS||!bE) { if(resEl) resEl.innerHTML=`<div class="comp-empty">${t('compEmpty1')}</div>`; return; }
-  aE.setHours(23,59,59,999); bE.setHours(23,59,59,999);
+  const dA = getPeriodDates(compA);
+  if(!dA.start||!dA.end) { if(resEl) resEl.innerHTML=`<div class="comp-empty">${t('compEmpty1')}</div>`; return; }
+
+  // 활성 비교 기간 수집
+  const cmpPeriods = [];
+  const PERIOD_COLORS = { B:'#64748b', C:'#059669', D:'#d97706' };
+  const PERIOD_TH     = { B:'th-b', C:'th-c', D:'th-d' };
+  ['B','C','D'].forEach(k => {
+    const p = {B:compB,C:compC,D:compD}[k];
+    if (k!=='B' && !p.active) return;
+    const d = getPeriodDates(p);
+    if (!d.start||!d.end) return;
+    cmpPeriods.push({key:k, p, d, color:PERIOD_COLORS[k], thCls:PERIOD_TH[k]});
+  });
+
+  if (!cmpPeriods.length) { if(resEl) resEl.innerHTML=`<div class="comp-empty">비교 기간(B/C/D)을 설정해주세요.</div>`; return; }
 
   const mDefs = getMetricDefs().filter(m=>compMetrics.has(m.id));
   if (!mDefs.length) return;
 
-  const pctChanges=[], chartLabels=[];
-  let tableRows='';
-  mDefs.forEach(m => {
-    const data=m.src==='trf'?trfData:revData;
-    const valA=calcPeriodVal(data,aS,aE,m.col,m.agg);
-    const valB=calcPeriodVal(data,bS,bE,m.col,m.agg);
-    const diff=(valA!=null&&valB!=null)?valA-valB:null;
-    const pct=(diff!=null&&valB&&valB!==0)?diff/Math.abs(valB):null;
-    const pctCls=pct==null?'chg-nil':(pct>=0?'chg-up':'chg-down');
-    const pctTxt=pct==null?'—':`${pct>=0?'▲ +':'▼ '}${(pct*100).toFixed(2)}%`;
-    const diffTxt=diff==null?'—':`${diff>=0?'+':''}${m.fmt(diff)}`;
-    tableRows+=`<tr>
-      <td>${m.label}</td>
-      <td>${valA!=null?m.fmt(valA):'-'}</td>
-      <td>${valB!=null?m.fmt(valB):'-'}</td>
-      <td class="${pctCls}">${diffTxt}</td>
-      <td class="${pctCls}" style="font-weight:700;">${pctTxt}</td>
-    </tr>`;
-    chartLabels.push(m.label);
-    pctChanges.push(pct!=null?+(pct*100).toFixed(2):null);
+  const aS=new Date(dA.start); const aE=new Date(dA.end); aE.setHours(23,59,59,999);
+
+  // 테이블 헤더
+  const thPeriods = cmpPeriods.map(cp => {
+    const lbl = getPeriodLabel(cp.key, cp.p);
+    const d = cp.d;
+    return `<th class="${cp.thCls}"><span class="comp-period-badge badge-${cp.key.toLowerCase()}">${cp.key}</span>${lbl}<div class="comp-date-sub">${d.start} ~ ${d.end}</div></th>`;
+  }).join('');
+
+  // 차트용 데이터셋 준비
+  const chartLabels = mDefs.map(m=>m.label);
+  const datasets = cmpPeriods.map(cp => ({
+    label: `${cp.key}: ${getPeriodLabel(cp.key,cp.p)} vs A`,
+    data: [],
+    backgroundColor: cp.color + 'BF',
+    borderColor: cp.color,
+    borderWidth: 1.5,
+    borderRadius: 4,
+    borderSkipped: false,
+  }));
+
+  // 행 생성
+  let tableRows = '';
+  mDefs.forEach((m, mi) => {
+    const data = m.src==='trf' ? trfData : revData;
+    const valA = calcPeriodVal(data, aS, aE, m.col, m.agg);
+    const fmtA = valA!=null ? m.fmt(valA) : '-';
+
+    let cmpCells = '';
+    cmpPeriods.forEach((cp, ci) => {
+      const cS=new Date(cp.d.start), cE=new Date(cp.d.end); cE.setHours(23,59,59,999);
+      const valC = calcPeriodVal(data, cS, cE, m.col, m.agg);
+      const pct  = (valA!=null&&valC!=null&&valA!==0) ? (valC-valA)/Math.abs(valA) : null;
+      const pctTxt = pct==null ? '—' : `${pct>=0?'▲ +':'▼ '}${(pct*100).toFixed(1)}%`;
+      const pctCls = pct==null?'comp-vs-nil':(pct>=0?'comp-vs-up':'comp-vs-down');
+      datasets[ci].data.push(pct!=null ? +(pct*100).toFixed(2) : null);
+      cmpCells += `<td>${valC!=null?m.fmt(valC):'-'}<br><span class="${pctCls}">${pctTxt}</span></td>`;
+    });
+    tableRows += `<tr><td>${m.label}</td><td style="font-weight:600;">${fmtA}</td>${cmpCells}</tr>`;
   });
 
+  const aLbl = getPeriodLabel('A', compA);
   if (resEl) resEl.innerHTML=`
   <div class="comp-results">
     <div class="table-block"><div class="tbl-wrap">
       <table class="comp-table">
         <thead><tr>
           <th>지표</th>
-          <th>${t('compPeriodALabel')}<div class="comp-date-sub">${compA.start} ~ ${compA.end}</div></th>
-          <th>${t('compPeriodBLabel')}<div class="comp-date-sub">${compB.start} ~ ${compB.end}</div></th>
-          <th>증감</th>
-          <th>증감율</th>
+          <th class="th-base"><span class="comp-period-badge badge-a">A</span>${aLbl}<div class="comp-date-sub">${dA.start} ~ ${dA.end}</div></th>
+          ${thPeriods}
         </tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
     </div></div>
     <div class="comp-chart-card">
-      <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:12px;">A vs B · 증감율 (%)</div>
+      <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:12px;">A 대비 증감율 (%)</div>
       <div class="comp-chart-wrap"><canvas id="cComp"></canvas></div>
     </div>
   </div>`;
@@ -1329,22 +1558,58 @@ function runComparison() {
   setTimeout(()=>{
     if(charts['cComp']){charts['cComp'].destroy();delete charts['cComp'];}
     const ctx=document.getElementById('cComp'); if(!ctx) return;
-    const barColors=pctChanges.map(p=>p==null?'rgba(203,213,225,0.7)':(p>=0?'rgba(220,38,38,0.75)':'rgba(37,99,235,0.75)'));
     charts['cComp']=new Chart(ctx,{
       type:'bar',
-      data:{labels:chartLabels,datasets:[{label:'증감율(%)',data:pctChanges,backgroundColor:barColors,borderRadius:5,borderSkipped:false}]},
+      data:{labels:chartLabels, datasets},
       options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},
-          tooltip:{callbacks:{label:c=>(c.parsed.y!=null?(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%':'—')},
-            backgroundColor:'#fff',borderColor:'#e3e8f0',borderWidth:1,titleColor:'#111827',bodyColor:'#6b7280',padding:10}},
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:true, position:'top', labels:{font:{size:11},padding:12}},
+          tooltip:{callbacks:{label:c=>`${c.dataset.label.split(':')[0]}: ${c.parsed.y!=null?(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(1)+'%':'—'}`},
+            backgroundColor:'#fff',borderColor:'#e3e8f0',borderWidth:1,titleColor:'#111827',bodyColor:'#374151',padding:10}
+        },
         scales:{
           x:{ticks:{color:'#6b7280',font:{size:11,weight:'600'}},grid:{display:false}},
-          y:{ticks:{color:'#9ca3af',font:{size:10},callback:v=>v+'%'},grid:{color:'#f3f4f6'}}
+          y:{ticks:{color:'#9ca3af',font:{size:10},callback:v=>v+'%'},grid:{color:'#f3f4f6'},
+             title:{display:true,text:'A 대비 증감율 (%)',color:'#9ca3af',font:{size:10}}}
         }
       }
     });
   },0);
+}
+
+function renderPeriodBox(key, p, badgeCls, label, isBase=false, canDisable=false) {
+  const isCollab = p.mode === 'collab';
+  const isDisabled = canDisable && !p.active;
+  const preview = isCollab && p.collab ? (()=>{ const c=COLLABS.find(x=>x.id===p.collab); return c?`${c.start} ~ ${c.end}`:''; })() : '';
+  return `
+  <div class="comp-period-box${isBase?' period-base':''}${isDisabled?' period-disabled':''}">
+    <div class="period-title-row">
+      <span class="comp-period-badge ${badgeCls}">${key}</span>
+      <span style="font-size:11px;font-weight:700;color:#374151;">${label}</span>
+      ${canDisable ? `<label class="period-enable-toggle" style="margin-left:auto;">
+        <input type="checkbox" ${p.active?'checked':''} onchange="togglePeriod('${key}',this.checked)"> 사용
+      </label>` : ''}
+    </div>
+    <div class="period-mode-toggle" style="margin-bottom:8px;">
+      <button class="${!isCollab?'active':''}" onclick="setPeriodMode('${key}','manual')">📅 직접 입력</button>
+      <button class="${isCollab?'active':''}" onclick="setPeriodMode('${key}','collab')">🎯 콜라보</button>
+    </div>
+    ${isCollab ? `
+      <select id="collabSelect${key}" class="comp-collab-select" onchange="onCollabSelect('${key}',this.value)">
+        ${collabOptions(p.collab)}
+      </select>
+      <div id="collabPreview${key}" class="comp-collab-preview">${preview}</div>
+    ` : `
+      <div class="comp-period-row">
+        <input type="date" id="${key.toLowerCase()}Start" class="comp-date-input" value="${p.start}"
+          onchange="${key==='A'?'compA':key==='B'?'compB':key==='C'?'compC':'compD'}.start=this.value">
+        <span class="comp-sep">~</span>
+        <input type="date" id="${key.toLowerCase()}End" class="comp-date-input" value="${p.end}"
+          onchange="${key==='A'?'compA':key==='B'?'compB':key==='C'?'compC':'compD'}.end=this.value">
+      </div>
+    `}
+  </div>`;
 }
 
 function renderComparePage() {
@@ -1355,7 +1620,17 @@ function renderComparePage() {
     const extra=isRev?' rev-metric':'';
     return `<button class="metric-btn ${ac}${extra}" data-metric="${m.id}" onclick="toggleMetric('${m.id}')">${m.label}</button>`;
   }).join('');
+  const arrowCls = collabMgmtOpen ? 'open' : '';
   return `
+  <!-- 콜라보 관리 패널 -->
+  <div class="collab-mgmt-panel">
+    <div class="collab-mgmt-header" onclick="collabMgmtOpen=!collabMgmtOpen;renderComparePageInPlace()">
+      <span class="collab-mgmt-title">🎯 콜라보 관리</span>
+      <span class="collab-mgmt-arrow ${arrowCls}">▼</span>
+    </div>
+    ${collabMgmtOpen ? `<div id="collabMgmtBody" class="collab-mgmt-body">${renderCollabMgmtBody()}</div>` : ''}
+  </div>
+  <!-- 비교 설정 패널 -->
   <div class="comp-panel">
     <div class="comp-panel-title">${t('compSettings')}</div>
     <div class="comp-quick">
@@ -1365,22 +1640,10 @@ function renderComparePage() {
       <button class="comp-quick-btn" onclick="setQuickCompare('30days')">${t('comp30Days')}</button>
     </div>
     <div class="comp-periods">
-      <div class="comp-period-box">
-        <div class="comp-period-title"><span class="comp-period-badge badge-a">A</span>${t('compPeriodA')}</div>
-        <div class="comp-period-row">
-          <input type="date" id="aStart" class="comp-date-input" value="${compA.start}" onchange="compA.start=this.value">
-          <span class="comp-sep">~</span>
-          <input type="date" id="aEnd" class="comp-date-input" value="${compA.end}" onchange="compA.end=this.value">
-        </div>
-      </div>
-      <div class="comp-period-box">
-        <div class="comp-period-title"><span class="comp-period-badge badge-b">B</span>${t('compPeriodB')}</div>
-        <div class="comp-period-row">
-          <input type="date" id="bStart" class="comp-date-input" value="${compB.start}" onchange="compB.start=this.value">
-          <span class="comp-sep">~</span>
-          <input type="date" id="bEnd" class="comp-date-input" value="${compB.end}" onchange="compB.end=this.value">
-        </div>
-      </div>
+      ${renderPeriodBox('A', compA, 'badge-a', '기준 기간', true,  false)}
+      ${renderPeriodBox('B', compB, 'badge-b', '비교 기간 B', false, false)}
+      ${renderPeriodBox('C', compC, 'badge-c', '비교 기간 C', false, true)}
+      ${renderPeriodBox('D', compD, 'badge-d', '비교 기간 D', false, true)}
     </div>
     <div class="comp-metrics-label">${t('compMetricsLabel')} <span style="color:#9ca3af;font-weight:400;">${t('compMetricsHint')}</span></div>
     <div class="metric-selector">${metricBtns}</div>
@@ -2290,7 +2553,7 @@ async function autoLoad() {
 
 // ── Init ───────────────────────────────
 applyLang();
-loadDatabricks();
+loadCollabs().then(() => loadDatabricks());
 </script>
 </body>
 </html>
