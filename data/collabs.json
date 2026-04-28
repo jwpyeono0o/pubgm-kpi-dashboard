@@ -96,5 +96,12 @@
     "start": "2024-11-22",
     "end": "2025-01-08",
     "type": "crate"
+  },
+  {
+    "id": "c_8zux5hk",
+    "name": "Tensura",
+    "start": "2024-11-28",
+    "end": "2024-12-27",
+    "type": "crate"
   }
 ]
