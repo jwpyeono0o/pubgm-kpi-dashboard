@@ -589,17 +589,20 @@ fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/dat
   .catch(() => {});
 
 let JP_SALES_DATA = {}; // data/jp_sales.json 로드 후 덮어씀
-fetch('data/jp_sales.json')
+fetch('https://raw.githubusercontent.com/jwpyeono0o/pubgm-kpi-dashboard/main/data/jp_sales.json?t=' + Date.now())
   .then(r => r.ok ? r.json() : null)
   .then(d => {
-    if (d && typeof d === 'object') {
+    if (d && typeof d === 'object' && Object.keys(d).length) {
       JP_SALES_DATA = d;
-      if ((typeof trfData!=='undefined'&&trfData&&trfData.length)||(typeof revData!=='undefined'&&revData&&revData.length)) render();
+    } else {
+      JP_SALES_DATA = JP_SALES_FALLBACK;
     }
+    // 데이터가 이미 로드된 상태면 바로 재렌더
+    if (trfData && trfData.length) render();
   })
   .catch(() => {
     JP_SALES_DATA = JP_SALES_FALLBACK;
-    if ((typeof trfData!=='undefined'&&trfData&&trfData.length)||(typeof revData!=='undefined'&&revData&&revData.length)) render();
+    if (trfData && trfData.length) render();
   });
 
 // ── 폴백: 하드코딩 데이터 (jp_sales.json 없을 때 사용) ──
@@ -2176,9 +2179,10 @@ async function loadDatabricks(reg) {
 
   let loaded = false;
   try {
-    const [trfResp, revResp] = await Promise.all([
+    const [trfResp, revResp, salesResp] = await Promise.all([
       fetch(BASE + `tlog_${reg}.json` + ts),
-      fetch(BASE + `billing_${reg}.json` + ts)
+      fetch(BASE + `billing_${reg}.json` + ts),
+      fetch(BASE + `jp_sales.json` + ts)
     ]);
     if (trfResp.ok) {
       const items = await trfResp.json();
@@ -2192,6 +2196,13 @@ async function loadDatabricks(reg) {
       if (Array.isArray(items) && items.length) {
         revData = dbBillingToRows(items, reg);
         loaded = true;
+      }
+    }
+    // JP Sales 마커 데이터 (JP 모드에서 빨간 막대 표시용)
+    if (salesResp.ok) {
+      const sales = await salesResp.json();
+      if (sales && typeof sales === 'object' && Object.keys(sales).length) {
+        JP_SALES_DATA = sales;
       }
     }
     if (loaded) {
