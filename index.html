@@ -2326,17 +2326,13 @@ function renderRetPage() {
   ).filter(v => v != null);
   const minV = Math.min(...allVals), maxV = Math.max(...allVals);
 
-  const showCountry = retCountry === 'ALL';
-  const dateColSpan = showCountry ? '' : '';
-
   const thead = `<thead>
     <tr>
       <th rowspan="2" style="position:sticky;top:0;z-index:3;background:#1e2535;border-radius:10px 0 0 0;">${t('retTableDate')}</th>
-      ${showCountry ? `<th rowspan="2" style="position:sticky;top:0;z-index:3;background:#1e2535;">국가</th>` : ''}
       ${showTypes.map(tp => `<th colspan="${dList.length}" class="${thGroup[tp]}" style="position:sticky;top:0;z-index:3;">${typeLabel[tp]}</th>`).join('')}
     </tr>
     <tr>
-      ${showTypes.flatMap(tp => dLabel.map(dl => `<th class="${thGroup[tp]}" style="position:sticky;top:41px;z-index:3;">${dl}</th>`)).join('')}
+      ${showTypes.flatMap(tp => dLabel.map(dl => `<th class="${thGroup[tp]}">${dl}</th>`)).join('')}
     </tr>
   </thead>`;
 
@@ -2347,18 +2343,14 @@ function renderRetPage() {
         return `<td class="${hmClass(v, minV, maxV)}">${v != null ? v.toFixed(2)+'%' : '—'}</td>`;
       })
     ).join('');
-    const countryBadge = r.country === 'JP'
-      ? `<span style="font-size:10px;font-weight:700;color:#2563eb;background:#eff6ff;padding:1px 5px;border-radius:4px;">JP</span>`
-      : `<span style="font-size:10px;font-weight:700;color:#dc2626;background:#fef2f2;padding:1px 5px;border-radius:4px;">KR</span>`;
     return `<tr>
       <td class="td-date" style="position:sticky;left:0;background:#fff;z-index:1;">${r.date}</td>
-      ${showCountry ? `<td style="text-align:center;white-space:nowrap;">${countryBadge}</td>` : ''}
       ${cells}
     </tr>`;
   }).join('');
 
   const scrollStyle = retData.length > 30 ? 'max-height:540px;overflow-y:auto;' : '';
-  const rowCount = retData.length;
+  const rowCount  = retData.length;
   const dateCount = new Set(retData.map(r=>r.date)).size;
 
   const tableHtml = `
