@@ -2679,15 +2679,30 @@ async function salesFetch() {
     if (r.std_dt > productMap[key].lastDate)  productMap[key].lastDate  = r.std_dt;
   }
 
-  // [2] UC_Change_reason121 값 교체: lucky_spin_stat (5개 제외 합산)
-  const r121Replace = (json.reason121_replace || [])
-    .filter(r => r.country === country && r.std_dt >= salesStart && r.std_dt <= salesEnd)
-    .reduce((s, r) => ({uc: s.uc + r.collab_uc, user: s.user + r.collab_user}), {uc:0, user:0});
+  // [2] UC_Change_reason121 제거 후 subreason별 개별 항목으로 교체
+  //     lucky_spin_stat에서 5개 제외(3002/3004/3006/3008/3023) 나머지를 subreason별 집계
+  delete productMap['UC_Change_reason121'];
 
-  if (r121Replace.uc > 0 && productMap['UC_Change_reason121']) {
-    productMap['UC_Change_reason121'].ucTotal   = r121Replace.uc;
-    productMap['UC_Change_reason121'].userTotal = r121Replace.user;
+  const subMap = {};
+  for (const r of (json.reason121_replace || [])) {
+    if (r.country !== country) continue;
+    if (r.std_dt < salesStart || r.std_dt > salesEnd) continue;
+    const key = `__sub_${r.subreason}`;
+    if (!subMap[key]) {
+      subMap[key] = {
+        product:   key,
+        _subName:  r.product_name || `Collab Spin #${r.subreason}`,
+        _category: r.category || 'SPIN',
+        ucTotal:   0, userTotal: 0,
+        firstDate: r.std_dt, lastDate: r.std_dt,
+      };
+    }
+    subMap[key].ucTotal   += r.collab_uc;
+    subMap[key].userTotal += r.collab_user;
+    if (r.std_dt < subMap[key].firstDate) subMap[key].firstDate = r.std_dt;
+    if (r.std_dt > subMap[key].lastDate)  subMap[key].lastDate  = r.std_dt;
   }
+  Object.assign(productMap, subMap);
 
   // 정렬 + 상위 15개
   const sorted = Object.values(productMap).sort((a, b) => b.ucTotal - a.ucTotal);
@@ -2695,7 +2710,7 @@ async function salesFetch() {
 
   salesData = sorted.slice(0, 15).map((r, i) => ({
     rank:      i + 1,
-    name:      friendlyName(r.product),
+    name:      r._subName || friendlyName(r.product),
     ucTotal:   r.ucTotal,
     usdTotal:  r.ucTotal / SALES_EX_RATE,
     shareRate: totalUc > 0 ? (r.ucTotal / totalUc * 100) : 0,
