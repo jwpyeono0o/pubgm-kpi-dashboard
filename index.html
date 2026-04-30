@@ -431,6 +431,69 @@
     .sales-usd-val { font-weight:700; color:#065f46; }
     .sales-empty { text-align:center; padding:48px 20px; color:#9ca3af; font-size:13px; }
 
+    /* ── 리텐션 탭 ── */
+    .ret-page { padding:4px 0; }
+    .ret-filter-bar {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      background:#f8faff; border:1px solid #e3e8f0; border-radius:9px;
+      padding:10px 16px; margin-bottom:14px;
+    }
+    .ret-filter-label { font-size:11px; font-weight:700; color:#374151; white-space:nowrap; }
+    .ret-sep { width:1px; height:20px; background:#e3e8f0; }
+    .ret-fetch-btn {
+      padding:5px 14px; border-radius:6px; border:none;
+      background:#2563eb; color:#fff; font-size:11px; font-weight:700;
+      cursor:pointer; transition:background .15s;
+    }
+    .ret-fetch-btn:hover { background:#1d4ed8; }
+    /* KPI 카드 */
+    .ret-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+    .ret-kpi-card {
+      background:#fff; border:1px solid #e3e8f0; border-radius:10px;
+      padding:12px 14px; text-align:center;
+    }
+    .ret-kpi-label { font-size:10px; font-weight:700; color:#6b7280; margin-bottom:4px; }
+    .ret-kpi-val   { font-size:22px; font-weight:800; color:#1e2535; }
+    .ret-kpi-wow   { font-size:10px; margin-top:3px; }
+    .ret-kpi-up    { color:#dc2626; }
+    .ret-kpi-down  { color:#2563eb; }
+    .ret-kpi-flat  { color:#9ca3af; }
+    /* 히트맵 테이블 */
+    .ret-table-wrap { overflow-x:auto; border-radius:10px; border:1px solid #e3e8f0; margin-bottom:20px; }
+    table.ret-table { width:100%; border-collapse:collapse; font-size:11px; }
+    table.ret-table thead th {
+      background:#475569; color:#fff; padding:7px 10px;
+      font-size:10px; font-weight:700; white-space:nowrap; text-align:center;
+    }
+    table.ret-table thead th.th-group-exist  { background:#1e3a5f; }
+    table.ret-table thead th.th-group-new    { background:#065f46; }
+    table.ret-table thead th.th-group-return { background:#713f12; }
+    table.ret-table thead th:first-child, table.ret-table thead th:nth-child(2) { background:#475569; text-align:left; }
+    table.ret-table tbody td { padding:5px 10px; border-bottom:1px solid #f0f0f0; text-align:center; font-size:11px; }
+    table.ret-table tbody td.td-date { text-align:left; color:#6b7280; font-size:10px; white-space:nowrap; }
+    table.ret-table tbody td.td-week { text-align:left; font-weight:700; color:#374151; font-size:10px; white-space:nowrap; }
+    table.ret-table tbody tr:hover td { background:#f0f7ff !important; }
+    /* 히트맵 색상 (파란 계열, 숫자 높을수록 진함) */
+    .hm-0  { background:#fff;    color:#374151; }
+    .hm-1  { background:#eff6ff; color:#1e40af; }
+    .hm-2  { background:#dbeafe; color:#1d4ed8; }
+    .hm-3  { background:#bfdbfe; color:#1e3a8a; }
+    .hm-4  { background:#93c5fd; color:#1e3a8a; }
+    .hm-5  { background:#60a5fa; color:#fff; }
+    .hm-6  { background:#3b82f6; color:#fff; }
+    .hm-7  { background:#2563eb; color:#fff; }
+    .hm-8  { background:#1d4ed8; color:#fff; }
+    .hm-9  { background:#1e40af; color:#fff; }
+    .hm-10 { background:#1e3a8a; color:#fff; }
+    /* 코호트 차트 */
+    .ret-cohort-wrap { background:#fff; border:1px solid #e3e8f0; border-radius:10px; padding:14px 16px; }
+    .ret-cohort-title { font-size:12px; font-weight:700; color:#111827; margin-bottom:10px; }
+    .ret-empty { text-align:center; padding:48px 20px; color:#9ca3af; font-size:13px; }
+    .ret-mock-notice {
+      background:#fffbeb; border:1px solid #fbbf24; border-radius:8px;
+      padding:8px 14px; margin-bottom:14px; font-size:11px; color:#92400e; font-weight:600;
+    }
+
     /* 행별 상품 이미지 셀 */
     .sales-img-cell {
       width:160px; min-width:140px;
@@ -802,7 +865,7 @@ const I18N = {
     wow:'WoW', reset:'초기화', refresh:'갱신',
     d7:'7일', d30:'30일', d90:'90일', dAll:'전체',
     revSection:'Revenue KPI', trfSection:'Traffic KPI',
-    tabDashboard:'대시보드', tabCompare:'기간별 비교', tabChangelog:'업데이트 히스토리',
+    tabDashboard:'대시보드', tabRetention:'리텐션', tabCompare:'기간별 비교', tabChangelog:'업데이트 히스토리',
     rangeLabel:'기간 설정', rangeApply:'적용', rangeReset:'초기화',
     rangeActive:'적용 중', rangeDefault:'기본 기간 (탭 기준)',
     comboSub:'최근 60일 · 기준:', todayLabel:'일간 지표',
@@ -867,6 +930,20 @@ const I18N = {
     autoConnected:'Databricks 자동 연동',
     // 판매 실적 탭
     tabSales:'판매 실적',
+    // 리텐션 탭
+    tabRetTitle:'📊 리텐션 분석',
+    retFilterCountry:'지역', retFilterStep:'Step', retFilterType:'유저 유형', retFilterDate:'기간', retFilterD:'지표',
+    retFetchBtn:'조회',
+    retTypeAll:'전체', retTypeExist:'Exist', retTypeNew:'New', retTypeReturn:'Return',
+    retKpiTitle:'기간 평균', retKpiWow:'WoW',
+    retTableDate:'날짜', retTableWeek:'주',
+    retColExist:'기존 유저', retColNew:'신규 유저', retColReturn:'복귀 유저',
+    retCohortTitle:'코호트별 리텐션 추이',
+    retCohortLabel:'가입연도',
+    retEmpty:'조회 기간을 설정하고 [조회]를 눌러주세요.',
+    retLoading:'Databricks에서 데이터 불러오는 중...',
+    retNoData:'해당 기간 데이터가 없습니다.',
+    retMockNotice:'⚠️ 현재 가상 데이터입니다. Databricks 연동 후 실제 데이터로 교체 예정.',
     salesTitle:'📦 판매 실적 — 상품별 UC 소비 Top 10',
     salesRegionLabel:'지역',
     salesDateLabel:'조회 기간',
@@ -911,7 +988,7 @@ const I18N = {
     wow:'WoW', reset:'リセット', refresh:'更新',
     d7:'7日', d30:'30日', d90:'90日', dAll:'全体',
     revSection:'Revenue KPI', trfSection:'トラフィック KPI',
-    tabDashboard:'ダッシュボード', tabCompare:'期間別比較', tabChangelog:'更新履歴',
+    tabDashboard:'ダッシュボード', tabRetention:'リテンション', tabCompare:'期間別比較', tabChangelog:'更新履歴',
     rangeLabel:'期間設定', rangeApply:'適用', rangeReset:'リセット',
     rangeActive:'適用中', rangeDefault:'デフォルト期間（タブ基準）',
     comboSub:'最近60日 · 基準:', todayLabel:'日次指標',
@@ -976,6 +1053,20 @@ const I18N = {
     autoConnected:'Databricks 自動連携',
     // 판매 실적 탭
     tabSales:'販売実績',
+    // リテンションタブ
+    tabRetTitle:'📊 リテンション分析',
+    retFilterCountry:'地域', retFilterStep:'Step', retFilterType:'ユーザー種別', retFilterDate:'期間', retFilterD:'指標',
+    retFetchBtn:'照会',
+    retTypeAll:'全体', retTypeExist:'Exist', retTypeNew:'New', retTypeReturn:'Return',
+    retKpiTitle:'期間平均', retKpiWow:'WoW',
+    retTableDate:'日付', retTableWeek:'週',
+    retColExist:'既存ユーザー', retColNew:'新規ユーザー', retColReturn:'復帰ユーザー',
+    retCohortTitle:'コホート別リテンション推移',
+    retCohortLabel:'登録年',
+    retEmpty:'照会期間を設定して【照会】を押してください。',
+    retLoading:'Databricksからデータを読み込み中...',
+    retNoData:'該当期間のデータがありません。',
+    retMockNotice:'⚠️ 現在は仮データです。Databricks連携後、実データに切り替え予定。',
     salesTitle:'📦 販売実績 — 商品別UC消費 Top 10',
     salesRegionLabel:'地域',
     salesDateLabel:'照会期間',
@@ -1522,6 +1613,16 @@ let salesStart = '';
 let salesEnd   = '';
 let salesData  = null;  // null = 미조회, [] = 결과 없음, [...] = 결과
 let salesImgData = {};  // {hash: {state:'loading'|'ok'|'none', url?}}
+
+// 리텐션 탭 상태
+let retCountry  = 'ALL'; // ALL / JP / KR
+let retStep     = '1';   // 1 / 2
+let retType     = 'ALL'; // ALL / Exist / New / Return
+let retDmetric  = 'D+1'; // D+1 / D+7 / D+14 / D+30
+let retStart    = '';
+let retEnd      = '';
+let retData     = null;   // null=미조회, []=없음, [...]=결과
+let retLoading  = false;
 let collabMgmtOpen = false;
 let editingCollabId = null;
 
@@ -2002,6 +2103,242 @@ function renderComparePage() {
     <button class="run-btn" onclick="runComparison()">${t('compRunBtn')}</button>
   </div>
   <div id="compareResults"><div class="comp-empty">${t('compEmpty2')}</div></div>`;
+}
+
+// ── 리텐션 탭 ───────────────────────────
+
+// 히트맵 등급 (0~10) — 지표별 최솟값/최댓값 기준 정규화
+function hmClass(val, min, max) {
+  if (val == null || isNaN(val)) return 'hm-0';
+  const pct = max === min ? 0 : (val - min) / (max - min);
+  return 'hm-' + Math.round(pct * 10);
+}
+
+// Databricks fetch (실제 연동 시 이 함수를 채워 넣음)
+// 현재는 mock 데이터 반환
+async function retFetch() {
+  if (!retStart || !retEnd) { alert(t('alertRangeFill')); return; }
+  if (retStart > retEnd)    { alert(t('alertDateOrder')); return; }
+  retLoading = true; retData = null;
+  render();
+
+  // ── TODO: Databricks 연동 시 아래를 실제 쿼리로 교체 ──
+  // const query = `
+  //   SELECT date, country, classification_step, user_type, register_cohort,
+  //          d1_retention, d7_retention, d14_retention, d30_retention
+  //   FROM pubgm_bi.traffic_retention_user_daily
+  //   WHERE date BETWEEN '${retStart}' AND '${retEnd}'
+  //     ${retCountry!=='ALL' ? `AND country='${retCountry}'` : ''}
+  //     AND classification_step = 'Step${retStep}'
+  //     ${retType!=='ALL' ? `AND user_type='${retType}'` : ''}
+  //   ORDER BY date DESC
+  // `;
+
+  // Mock 데이터 생성 (실제 컬럼명 확인 후 교체)
+  await new Promise(r => setTimeout(r, 600)); // 로딩 UX용 딜레이
+  retData = generateRetMock(retStart, retEnd, retCountry, retStep, retType);
+  retLoading = false;
+  render();
+}
+
+// Mock 데이터 생성기
+function generateRetMock(start, end, country, step, type) {
+  const rows = [];
+  const d = new Date(start);
+  const endD = new Date(end);
+  // 베이스 수치 (Step1 기준)
+  const base = { Exist:{d1:73,d7:63,d14:57,d30:48}, New:{d1:42,d7:16,d14:10,d30:6}, Return:{d1:34,d7:19,d14:14,d30:11} };
+  const stepMult = step === '2' ? 0.95 : 1; // Step2는 약간 낮은 수치
+  while (d <= endD) {
+    const iso = d.toISOString().slice(0,10);
+    const noise = () => (Math.random()-0.5)*4;
+    const mk = (b) => ({
+      d1:  +(Math.min(99, Math.max(0, b.d1  * stepMult + noise()))).toFixed(2),
+      d7:  +(Math.min(99, Math.max(0, b.d7  * stepMult + noise()))).toFixed(2),
+      d14: +(Math.min(99, Math.max(0, b.d14 * stepMult + noise()))).toFixed(2),
+      d30: +(Math.min(99, Math.max(0, b.d30 * stepMult + noise()))).toFixed(2),
+    });
+    rows.push({
+      date: iso,
+      country: country === 'ALL' ? (d.getDate()%2===0?'JP':'KR') : country,
+      step: `Step${step}`,
+      exist:  type==='ALL'||type==='Exist'  ? mk(base.Exist)  : null,
+      new_u:  type==='ALL'||type==='New'    ? mk(base.New)    : null,
+      return_u: type==='ALL'||type==='Return' ? mk(base.Return) : null,
+      cohort: 2020 + Math.floor(Math.random()*5),
+    });
+    d.setDate(d.getDate()+1);
+  }
+  return rows.reverse();
+}
+
+// KPI 카드용 평균 계산
+function retAvg(data, type, dn) {
+  const key = {Exist:'exist', New:'new_u', Return:'return_u'}[type] || 'exist';
+  const vals = data.map(r => r[key]?.[dn]).filter(v => v != null);
+  if (!vals.length) return null;
+  return (vals.reduce((a,b)=>a+b,0)/vals.length);
+}
+
+function renderRetKpiCard(label, val, wow) {
+  const wowCls = wow > 0 ? 'ret-kpi-up' : wow < 0 ? 'ret-kpi-down' : 'ret-kpi-flat';
+  const wowTxt = wow != null ? `${wow>0?'+':''}${wow.toFixed(1)}pp WoW` : '—';
+  return `<div class="ret-kpi-card">
+    <div class="ret-kpi-label">${label}</div>
+    <div class="ret-kpi-val">${val != null ? val.toFixed(1)+'%' : '—'}</div>
+    <div class="ret-kpi-wow ${wowCls}">${wowTxt}</div>
+  </div>`;
+}
+
+function renderRetPage() {
+  const dnOpts = ['D+1','D+7','D+14','D+30'];
+  const typeOpts = [
+    {v:'ALL',   l:t('retTypeAll')},
+    {v:'Exist', l:t('retTypeExist')},
+    {v:'New',   l:t('retTypeNew')},
+    {v:'Return',l:t('retTypeReturn')},
+  ];
+
+  // 필터 바
+  const filterBar = `
+  <div class="ret-filter-bar">
+    <span class="ret-filter-label">${t('retFilterCountry')}</span>
+    <div class="pill-group" style="border:none;background:transparent;padding:0;">
+      ${['ALL','JP','KR'].map(c=>`<button class="pill ${retCountry===c?'active':''}" style="font-size:11px;padding:4px 10px;" onclick="retCountry='${c}';retData=null;render()">${c}</button>`).join('')}
+    </div>
+    <div class="ret-sep"></div>
+    <span class="ret-filter-label">${t('retFilterStep')}</span>
+    <div class="pill-group" style="border:none;background:transparent;padding:0;">
+      ${['1','2'].map(s=>`<button class="pill ${retStep===s?'active':''}" style="font-size:11px;padding:4px 10px;" onclick="retStep='${s}';retData=null;render()">Step${s}</button>`).join('')}
+    </div>
+    <div class="ret-sep"></div>
+    <span class="ret-filter-label">${t('retFilterType')}</span>
+    <div class="pill-group" style="border:none;background:transparent;padding:0;">
+      ${typeOpts.map(o=>`<button class="pill ${retType===o.v?'active':''}" style="font-size:11px;padding:4px 10px;" onclick="retType='${o.v}';retData=null;render()">${o.l}</button>`).join('')}
+    </div>
+    <div class="ret-sep"></div>
+    <span class="ret-filter-label">${t('retFilterD')}</span>
+    <div class="pill-group" style="border:none;background:transparent;padding:0;">
+      ${dnOpts.map(d=>`<button class="pill ${retDmetric===d?'active':''}" style="font-size:11px;padding:4px 10px;" onclick="retDmetric='${d}';render()">${d}</button>`).join('')}
+    </div>
+    <div class="ret-sep"></div>
+    <span class="ret-filter-label">${t('retFilterDate')}</span>
+    <input type="date" class="sales-date-input" value="${retStart}" onchange="retStart=this.value">
+    <span class="sales-sep">~</span>
+    <input type="date" class="sales-date-input" value="${retEnd}" onchange="retEnd=this.value">
+    <button class="ret-fetch-btn" onclick="retFetch()">${t('retFetchBtn')}</button>
+  </div>`;
+
+  const mockNotice = `<div class="ret-mock-notice">${t('retMockNotice')}</div>`;
+
+  if (retLoading) {
+    return `<div class="ret-page">${filterBar}<div class="ret-empty">⏳ ${t('retLoading')}</div></div>`;
+  }
+  if (!retData) {
+    return `<div class="ret-page">${filterBar}${mockNotice}<div class="ret-empty">📋 ${t('retEmpty')}</div></div>`;
+  }
+  if (retData.length === 0) {
+    return `<div class="ret-page">${filterBar}<div class="ret-empty">😶 ${t('retNoData')}</div></div>`;
+  }
+
+  // 지표 키
+  const dnKey = {'D+1':'d1','D+7':'d7','D+14':'d14','D+30':'d30'}[retDmetric];
+  const showTypes = retType==='ALL'
+    ? ['Exist','New','Return']
+    : [retType];
+
+  // ── KPI 카드 ──
+  const kpiHtml = `<div class="ret-kpi-row">
+    ${dnOpts.map(dn => {
+      const k = {'D+1':'d1','D+7':'d7','D+14':'d14','D+30':'d30'}[dn];
+      const types = retType==='ALL' ? ['Exist','New','Return'] : [retType];
+      const typeKey = {Exist:'exist',New:'new_u',Return:'return_u'};
+      const allVals = types.flatMap(tp => retData.map(r => r[typeKey[tp]]?.[k])).filter(v=>v!=null);
+      const avg = allVals.length ? allVals.reduce((a,b)=>a+b,0)/allVals.length : null;
+      return renderRetKpiCard(dn, avg, (Math.random()-0.48)*2);  // mock WoW
+    }).join('')}
+  </div>`;
+
+  // ── 히트맵 테이블 ──
+  // 헤더 구성
+  const typeLabel = {Exist: t('retColExist'), New: t('retColNew'), Return: t('retColReturn')};
+  const typeKey   = {Exist:'exist', New:'new_u', Return:'return_u'};
+  const dList     = ['d1','d7','d14','d30'];
+  const dLabel    = ['D+1','D+7','D+14','D+30'];
+  const thGroup   = {Exist:'th-group-exist', New:'th-group-new', Return:'th-group-return'};
+
+  // 전체 값 범위 (히트맵 정규화용)
+  const allVals = retData.flatMap(r =>
+    showTypes.flatMap(tp => dList.map(d => r[typeKey[tp]]?.[d]))
+  ).filter(v => v != null);
+  const minV = Math.min(...allVals), maxV = Math.max(...allVals);
+
+  // 헤더
+  let thead = `<thead>
+    <tr>
+      <th rowspan="2" style="border-radius:10px 0 0 0;">${t('retTableDate')}</th>
+      ${showTypes.map((tp,i) => `<th colspan="${dList.length}" class="${thGroup[tp]}"${i===showTypes.length-1&&i===0?' style="border-radius:0 10px 0 0;"':''}>${typeLabel[tp]}</th>`).join('')}
+    </tr>
+    <tr>
+      ${showTypes.flatMap(tp => dLabel.map((dl,di) => `<th class="${thGroup[tp]}">${dl}</th>`)).join('')}
+    </tr>
+  </thead>`;
+
+  // 행 (최대 60일)
+  const rows = retData.slice(0, 60).map(r => {
+    const dateCells = showTypes.flatMap(tp =>
+      dList.map(d => {
+        const v = r[typeKey[tp]]?.[d];
+        return `<td class="${hmClass(v, minV, maxV)}">${v != null ? v.toFixed(1)+'%' : '—'}</td>`;
+      })
+    ).join('');
+    return `<tr><td class="td-date">${r.date}</td>${dateCells}</tr>`;
+  }).join('');
+
+  const tableHtml = `
+  <div class="ret-table-wrap">
+    <table class="ret-table">
+      ${thead}
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+
+  // ── 코호트 차트 ──
+  // 가입연도별 D+x 평균 계산
+  const cohortYears = [...new Set(retData.map(r=>r.cohort))].sort();
+  const cohortAvg = cohortYears.map(yr => {
+    const subset = retData.filter(r=>r.cohort===yr);
+    const types  = retType==='ALL' ? ['Exist','New','Return'] : [retType];
+    const vals   = types.flatMap(tp => subset.map(r => r[typeKey[tp]]?.[dnKey])).filter(v=>v!=null);
+    const avg    = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+    return {yr, avg};
+  });
+
+  const cohortColors = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316'];
+
+  const cohortHtml = `
+  <div class="ret-cohort-wrap">
+    <div class="ret-cohort-title">${t('retCohortTitle')} — ${retDmetric}</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
+      ${cohortAvg.map((c,i) => {
+        const barH = c.avg != null ? Math.round(c.avg / maxV * 120) : 0;
+        const col  = cohortColors[i % cohortColors.length];
+        return `<div style="text-align:center;min-width:48px;">
+          <div style="font-size:11px;font-weight:700;color:${col};margin-bottom:4px;">${c.avg!=null?c.avg.toFixed(1)+'%':'—'}</div>
+          <div style="width:40px;height:${barH}px;background:${col};border-radius:4px 4px 0 0;margin:0 auto;min-height:4px;"></div>
+          <div style="font-size:10px;color:#6b7280;margin-top:4px;">${c.yr}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  return `<div class="ret-page">
+    ${filterBar}
+    ${mockNotice}
+    ${kpiHtml}
+    ${tableHtml}
+    ${cohortHtml}
+  </div>`;
 }
 
 // ── 판매 실적 탭 ────────────────────────
@@ -2683,10 +3020,19 @@ function render() {
   <div class="main-tabs">
     <button class="mtab ${mainTab==='dashboard'?'active':''}" onclick="setMainTab('dashboard')">${t('tabDashboard')}</button>
     <button class="mtab ${mainTab==='sales'?'active':''}" onclick="setMainTab('sales')">${t('tabSales')}</button>
+    <button class="mtab ${mainTab==='retention'?'active':''}" onclick="setMainTab('retention')">${t('tabRetention')}</button>
     <button class="mtab ${mainTab==='compare'?'active':''}" onclick="setMainTab('compare')">${t('tabCompare')}</button>
     <button class="mtab ${mainTab==='changelog'?'active':''}" onclick="setMainTab('changelog')">${t('tabChangelog')}</button>
   </div>`;
 
+  if (mainTab === 'retention') {
+    document.getElementById('dash').innerHTML = mainTabsHtml + `
+    <div class="main" style="padding-top:16px;">
+      <div class="section-head"><span class="section-title">${t('tabRetTitle')}</span></div>
+      ${renderRetPage()}
+    </div>`;
+    return;
+  }
   if (mainTab === 'sales') {
     document.getElementById('dash').innerHTML = mainTabsHtml + `
     <div class="main" style="padding-top:16px;">
