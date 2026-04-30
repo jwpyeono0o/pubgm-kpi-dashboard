@@ -2114,29 +2114,76 @@ function hmClass(val, min, max) {
   return 'hm-' + Math.round(pct * 10);
 }
 
-// Databricks fetch (실제 연동 시 이 함수를 채워 넣음)
-// 현재는 mock 데이터 반환
+// ── retention.json 캐시 ──
+let _retJsonCache = null;  // {updated_at, daily:[], cohort:[]}
+
+async function loadRetJson() {
+  if (_retJsonCache) return _retJsonCache;
+  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/data/retention.json?t=${Date.now()}`;
+  try {
+    const r = await fetch(url);
+    if (r.ok) { _retJsonCache = await r.json(); return _retJsonCache; }
+  } catch(e) {}
+  return null;
+}
+
 async function retFetch() {
   if (!retStart || !retEnd) { alert(t('alertRangeFill')); return; }
   if (retStart > retEnd)    { alert(t('alertDateOrder')); return; }
   retLoading = true; retData = null;
   render();
 
-  // ── TODO: Databricks 연동 시 아래를 실제 쿼리로 교체 ──
-  // const query = `
-  //   SELECT date, country, classification_step, user_type, register_cohort,
-  //          d1_retention, d7_retention, d14_retention, d30_retention
-  //   FROM pubgm_bi.traffic_retention_user_daily
-  //   WHERE date BETWEEN '${retStart}' AND '${retEnd}'
-  //     ${retCountry!=='ALL' ? `AND country='${retCountry}'` : ''}
-  //     AND classification_step = 'Step${retStep}'
-  //     ${retType!=='ALL' ? `AND user_type='${retType}'` : ''}
-  //   ORDER BY date DESC
-  // `;
+  const json = await loadRetJson();
 
-  // Mock 데이터 생성 (실제 컬럼명 확인 후 교체)
-  await new Promise(r => setTimeout(r, 600)); // 로딩 UX용 딜레이
-  retData = generateRetMock(retStart, retEnd, retCountry, retStep, retType);
+  if (json) {
+    // ── GitHub JSON 데이터 필터링 ──
+    const step = `step${retStep}`;
+    let rows = json.daily.filter(r =>
+      r.step === step &&
+      (retCountry === 'ALL' || r.country === retCountry) &&
+      (retType    === 'ALL' || r.user_type === retType) &&
+      r.date >= retStart && r.date <= retEnd
+    );
+
+    // 대시보드용 형태로 변환 (기존 mock과 동일한 구조)
+    retData = rows.map(r => ({
+      date:     r.date,
+      country:  r.country,
+      step:     r.step,
+      exist:    r.user_type === 'Exist'  ? {d1:r.d1, d7:r.d7, d14:r.d14, d30:r.d30} : null,
+      new_u:    r.user_type === 'New'    ? {d1:r.d1, d7:r.d7, d14:r.d14, d30:r.d30} : null,
+      return_u: r.user_type === 'Return' ? {d1:r.d1, d7:r.d7, d14:r.d14, d30:r.d30} : null,
+      cohort:   null,
+    }));
+
+    // 같은 날짜+국가 행 머지 (user_type별로 분리된 행 → 한 행으로)
+    const merged = {};
+    for (const r of retData) {
+      const key = `${r.date}_${r.country}`;
+      if (!merged[key]) merged[key] = {date:r.date, country:r.country, step:r.step, exist:null, new_u:null, return_u:null, cohort:null};
+      if (r.exist)    merged[key].exist    = r.exist;
+      if (r.new_u)    merged[key].new_u    = r.new_u;
+      if (r.return_u) merged[key].return_u = r.return_u;
+    }
+    retData = Object.values(merged).sort((a,b)=>b.date.localeCompare(a.date));
+
+    // 코호트 데이터 붙이기
+    const cohortRows = json.cohort.filter(r =>
+      r.step === step &&
+      (retCountry === 'ALL' || r.country === retCountry) &&
+      (retType    === 'ALL' || r.user_type === retType)
+    );
+    retData._cohort = cohortRows;
+    retData._updatedAt = json.updated_at;
+
+  } else {
+    // ── fallback: GitHub JSON 없으면 mock 데이터 ──
+    await new Promise(r => setTimeout(r, 400));
+    retData = generateRetMock(retStart, retEnd, retCountry, retStep, retType);
+    retData._cohort = null;
+    retData._updatedAt = null;
+  }
+
   retLoading = false;
   render();
 }
@@ -2304,28 +2351,44 @@ function renderRetPage() {
   </div>`;
 
   // ── 코호트 차트 ──
-  // 가입연도별 D+x 평균 계산
-  const cohortYears = [...new Set(retData.map(r=>r.cohort))].sort();
-  const cohortAvg = cohortYears.map(yr => {
-    const subset = retData.filter(r=>r.cohort===yr);
-    const types  = retType==='ALL' ? ['Exist','New','Return'] : [retType];
-    const vals   = types.flatMap(tp => subset.map(r => r[typeKey[tp]]?.[dnKey])).filter(v=>v!=null);
-    const avg    = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
-    return {yr, avg};
-  });
-
   const cohortColors = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316'];
+  let cohortAvg = [];
+
+  if (retData._cohort && retData._cohort.length > 0) {
+    // 실제 데이터: GitHub JSON cohort rows
+    const years = [...new Set(retData._cohort.map(r=>r.register_year))].sort();
+    cohortAvg = years.map(yr => {
+      const subset = retData._cohort.filter(r=>r.register_year===yr);
+      const vals   = subset.map(r=>r[dnKey]).filter(v=>v!=null);
+      const avg    = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+      return {yr, avg};
+    });
+  } else {
+    // fallback: mock 데이터에서 cohort 추출
+    const years = [...new Set(retData.map(r=>r.cohort))].filter(Boolean).sort();
+    cohortAvg = years.map(yr => {
+      const subset = retData.filter(r=>r.cohort===yr);
+      const types  = retType==='ALL' ? ['Exist','New','Return'] : [retType];
+      const vals   = types.flatMap(tp => subset.map(r => r[typeKey[tp]]?.[dnKey])).filter(v=>v!=null);
+      const avg    = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+      return {yr, avg};
+    });
+  }
+
+  const cohortMaxVal = Math.max(...cohortAvg.map(c=>c.avg||0), 1);
+  const updatedAt = retData._updatedAt
+    ? `<span style="font-size:10px;color:#9ca3af;font-weight:400;"> (데이터 기준: ${retData._updatedAt.slice(0,10)})</span>` : '';
 
   const cohortHtml = `
   <div class="ret-cohort-wrap">
-    <div class="ret-cohort-title">${t('retCohortTitle')} — ${retDmetric}</div>
+    <div class="ret-cohort-title">${t('retCohortTitle')} — ${retDmetric}${updatedAt}</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
       ${cohortAvg.map((c,i) => {
-        const barH = c.avg != null ? Math.round(c.avg / maxV * 120) : 0;
+        const barH = c.avg != null ? Math.round(c.avg / cohortMaxVal * 120) : 0;
         const col  = cohortColors[i % cohortColors.length];
         return `<div style="text-align:center;min-width:48px;">
           <div style="font-size:11px;font-weight:700;color:${col};margin-bottom:4px;">${c.avg!=null?c.avg.toFixed(1)+'%':'—'}</div>
-          <div style="width:40px;height:${barH}px;background:${col};border-radius:4px 4px 0 0;margin:0 auto;min-height:4px;"></div>
+          <div style="width:40px;height:${Math.max(barH,4)}px;background:${col};border-radius:4px 4px 0 0;margin:0 auto;"></div>
           <div style="font-size:10px;color:#6b7280;margin-top:4px;">${c.yr}</div>
         </div>`;
       }).join('')}
