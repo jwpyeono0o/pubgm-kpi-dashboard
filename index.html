@@ -368,6 +368,68 @@
     .collab-tag-crate { background:#fef3c7; color:#b45309; }
     .collab-tag-etc   { background:#f3f4f6; color:#6b7280; }
     .collab-type-select { border:1px solid #e3e8f0; border-radius:6px; padding:6px 7px; font-size:11px; color:#374151; outline:none; background:#fff; cursor:pointer; }
+
+    /* ── 판매 실적 탭 ── */
+    .sales-page { padding:4px 0; }
+    .sales-filter-bar {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      background:#f8faff; border:1px solid #e3e8f0; border-radius:9px;
+      padding:10px 16px; margin-bottom:14px;
+    }
+    .sales-filter-label { font-size:11px; font-weight:700; color:#374151; white-space:nowrap; }
+    .sales-date-input {
+      padding:5px 9px; border:1px solid #d1d9e6; border-radius:5px;
+      font-size:11px; color:#374151; background:#fff; outline:none; transition:border-color .15s;
+    }
+    .sales-date-input:focus { border-color:#2563eb; }
+    .sales-sep { font-size:11px; color:#9ca3af; }
+    .sales-fetch-btn {
+      padding:5px 14px; border-radius:6px; border:none;
+      background:#2563eb; color:#fff; font-size:11px; font-weight:700;
+      cursor:pointer; transition:background .15s; white-space:nowrap;
+    }
+    .sales-fetch-btn:hover { background:#1d4ed8; }
+    .sales-mock-notice {
+      background:#fffbeb; border:1px solid #fbbf24; border-radius:8px;
+      padding:8px 14px; margin-bottom:14px; font-size:11px; color:#92400e; font-weight:600;
+    }
+    .sales-meta-row {
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      gap:6px; margin-bottom:10px;
+    }
+    .sales-meta-total {
+      font-size:12px; font-weight:700; color:#1e2535;
+    }
+    .sales-meta-exrate { font-size:10px; color:#9ca3af; }
+    .sales-table-wrap { overflow-x:auto; border-radius:10px; border:1px solid #e3e8f0; }
+    table.sales-table { width:100%; border-collapse:collapse; font-size:12px; }
+    table.sales-table thead th {
+      background:#475569; color:#fff; padding:9px 12px; text-align:left;
+      font-size:11px; font-weight:700; white-space:nowrap;
+    }
+    table.sales-table thead th:first-child { border-radius:10px 0 0 0; }
+    table.sales-table thead th:last-child  { border-radius:0 10px 0 0; }
+    table.sales-table tbody tr:nth-child(odd)  { background:#f8faff; }
+    table.sales-table tbody tr:nth-child(even) { background:#fff; }
+    table.sales-table tbody tr:hover { background:#eff6ff; }
+    table.sales-table td { padding:8px 12px; border-bottom:1px solid #f0f0f0; color:#374151; }
+    .sales-rank-badge {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:24px; height:24px; border-radius:50%; font-size:11px; font-weight:800;
+    }
+    .sales-rank-1 { background:#ffd700; color:#7a5c00; }
+    .sales-rank-2 { background:#e0e0e0; color:#4b5563; }
+    .sales-rank-3 { background:#cd7f32; color:#fff; }
+    .sales-rank-n { background:#f3f4f6; color:#6b7280; font-size:10px; }
+    .sales-share-bar-wrap { display:flex; align-items:center; gap:6px; }
+    .sales-share-bar {
+      height:6px; border-radius:3px; background:#2563eb; min-width:2px;
+      transition:width .3s;
+    }
+    .sales-share-val { font-size:11px; font-weight:700; color:#2563eb; white-space:nowrap; }
+    .sales-uc-val  { font-weight:700; color:#1e2535; }
+    .sales-usd-val { font-weight:700; color:#065f46; }
+    .sales-empty { text-align:center; padding:48px 20px; color:#9ca3af; font-size:13px; }
     /* result table multi-period */
     .comp-table th.th-base { background:#eff6ff; color:#2563eb; }
     .comp-table th.th-b { background:#f8fafc; color:#475569; }
@@ -772,6 +834,24 @@ const I18N = {
     emptyLoadingTitle:'Databricks에서 데이터 불러오는 중...',
     emptyLoadingHint:'잠시만 기다려주세요',
     autoConnected:'Databricks 자동 연동',
+    // 판매 실적 탭
+    tabSales:'판매 실적',
+    salesTitle:'📦 판매 실적 — 상품별 UC 소비 Top 10',
+    salesRegionLabel:'지역',
+    salesDateLabel:'조회 기간',
+    salesFetchBtn:'조회',
+    salesMockNotice:'⚠️ 현재 가상 데이터입니다. Databricks 권한 취득 후 실제 데이터로 교체 예정.',
+    salesColRank:'순위',
+    salesColName:'상품명',
+    salesColUc:'Total UC 소비량',
+    salesColUsd:'Total USD',
+    salesColShare:'Sales Share (%)',
+    salesColStart:'판매 시작일',
+    salesColEnd:'판매 종료일',
+    salesEmpty:'조회 기간을 설정하고 [조회]를 눌러주세요.',
+    salesNoData:'해당 기간에 데이터가 없습니다.',
+    salesExRate:'환율 기준: 1 USD = 124.85 UC',
+    salesTotalUc:'기간 내 Total UC',
   },
   ja: {
     title:'KRAFTON KPI ダッシュボード',
@@ -857,6 +937,24 @@ const I18N = {
     emptyLoadingTitle:'Databricksからデータを読み込み中...',
     emptyLoadingHint:'しばらくお待ちください',
     autoConnected:'Databricks 自動連携',
+    // 판매 실적 탭
+    tabSales:'販売実績',
+    salesTitle:'📦 販売実績 — 商品別UC消費 Top 10',
+    salesRegionLabel:'地域',
+    salesDateLabel:'照会期間',
+    salesFetchBtn:'照会',
+    salesMockNotice:'⚠️ 現在は仮データです。Databricks権限取得後、実データに切り替え予定。',
+    salesColRank:'順位',
+    salesColName:'商品名',
+    salesColUc:'Total UC消費量',
+    salesColUsd:'Total USD',
+    salesColShare:'Sales Share (%)',
+    salesColStart:'販売開始日',
+    salesColEnd:'販売終了日',
+    salesEmpty:'照会期間を設定して【照会】を押してください。',
+    salesNoData:'該当期間にデータがありません。',
+    salesExRate:'為替レート基準: 1 USD = 124.85 UC',
+    salesTotalUc:'期間内 Total UC',
   }
 };
 
@@ -1375,6 +1473,11 @@ let compD = {start:'', end:'', mode:'manual', collab:'', active:false};
 let compMetrics = new Set(['dau','nru','rev','pu']);
 let normDays = '';
 let COLLABS = [];
+
+// 판매 실적 탭 상태
+let salesStart = '';
+let salesEnd   = '';
+let salesData  = null;  // null = 미조회, [] = 결과 없음, [...] = 결과
 let collabMgmtOpen = false;
 let editingCollabId = null;
 
@@ -1857,6 +1960,154 @@ function renderComparePage() {
   <div id="compareResults"><div class="comp-empty">${t('compEmpty2')}</div></div>`;
 }
 
+// ── 판매 실적 탭 ────────────────────────
+// 1 USD = 124.85 UC (실측 기준)
+const SALES_EX_RATE = 124.85;
+
+// ── 가상 데이터 (Databricks 연동 전 임시) ──
+const SALES_MOCK = {
+  jp: [
+    { name:'イカゲームコラボ — エリセット', ucTotal:12_450_000, saleStart:'2025-01-15', saleEnd:'2025-01-29' },
+    { name:'ミステリースピン Vol.23',       ucTotal: 9_820_000, saleStart:'2025-02-01', saleEnd:'2025-02-14' },
+    { name:'BGMI × NARUTO コラボ衣装',     ucTotal: 8_340_000, saleStart:'2025-02-15', saleEnd:'2025-02-28' },
+    { name:'ラッキードロー — サクラ',       ucTotal: 7_110_000, saleStart:'2025-01-20', saleEnd:'2025-02-05' },
+    { name:'スノーフレークセット',          ucTotal: 6_850_000, saleStart:'2024-12-20', saleEnd:'2025-01-10' },
+    { name:'ロイヤルパス S32',              ucTotal: 6_200_000, saleStart:'2025-01-01', saleEnd:'2025-01-31' },
+    { name:'ゴールデンクレート Vol.11',     ucTotal: 5_490_000, saleStart:'2025-02-10', saleEnd:'2025-02-20' },
+    { name:'ホーラバディ — チームコスチューム', ucTotal: 4_970_000, saleStart:'2025-01-05', saleEnd:'2025-01-18' },
+    { name:'エクスクルーシブセット β',     ucTotal: 4_320_000, saleStart:'2025-02-18', saleEnd:'2025-02-28' },
+    { name:'スペシャルフレームパック',      ucTotal: 3_880_000, saleStart:'2025-01-25', saleEnd:'2025-02-08' },
+  ],
+  kr: [
+    { name:'이카게임 콜라보 — 엘리 세트',  ucTotal:11_200_000, saleStart:'2025-01-15', saleEnd:'2025-01-29' },
+    { name:'미스터리 스핀 Vol.23',          ucTotal: 8_950_000, saleStart:'2025-02-01', saleEnd:'2025-02-14' },
+    { name:'나루토 콜라보 의상 세트',       ucTotal: 7_800_000, saleStart:'2025-02-15', saleEnd:'2025-02-28' },
+    { name:'럭키드로우 — 사쿠라',          ucTotal: 6_500_000, saleStart:'2025-01-20', saleEnd:'2025-02-05' },
+    { name:'스노우플레이크 세트',           ucTotal: 5_900_000, saleStart:'2024-12-20', saleEnd:'2025-01-10' },
+    { name:'로얄패스 S32',                  ucTotal: 5_600_000, saleStart:'2025-01-01', saleEnd:'2025-01-31' },
+    { name:'골든 크레이트 Vol.11',          ucTotal: 4_700_000, saleStart:'2025-02-10', saleEnd:'2025-02-20' },
+    { name:'훌라버디 — 팀 코스튬',         ucTotal: 4_200_000, saleStart:'2025-01-05', saleEnd:'2025-01-18' },
+    { name:'익스클루시브 세트 β',          ucTotal: 3_900_000, saleStart:'2025-02-18', saleEnd:'2025-02-28' },
+    { name:'스페셜 프레임 팩',             ucTotal: 3_400_000, saleStart:'2025-01-25', saleEnd:'2025-02-08' },
+  ]
+};
+
+function salesFetch() {
+  if (!salesStart || !salesEnd) { alert(t('alertRangeFill')); return; }
+  if (salesStart > salesEnd)    { alert(t('alertDateOrder')); return; }
+  // ── Databricks 연동 시 이 부분을 실제 fetch로 교체 ──
+  // 현재는 mock 데이터를 그대로 사용
+  const mockRaw = SALES_MOCK[region] || [];
+  const totalUc = mockRaw.reduce((s, r) => s + r.ucTotal, 0);
+  salesData = mockRaw.map((r, i) => ({
+    rank:      i + 1,
+    name:      r.name,
+    ucTotal:   r.ucTotal,
+    usdTotal:  r.ucTotal / SALES_EX_RATE,
+    shareRate: totalUc > 0 ? (r.ucTotal / totalUc * 100) : 0,
+    saleStart: r.saleStart,
+    saleEnd:   r.saleEnd,
+  }));
+  render();
+}
+
+function renderSalesPage() {
+  const fmtNum = n => n.toLocaleString('en-US', {maximumFractionDigits:0});
+  const fmtUsd = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  // 필터 바
+  const filterBar = `
+  <div class="sales-filter-bar">
+    <span class="sales-filter-label">${t('salesRegionLabel')}</span>
+    <div class="pill-group" style="border:none;background:transparent;padding:0;gap:4px;">
+      <button class="pill ${region==='jp'?'active':''}" style="font-size:11px;padding:4px 12px;" onclick="region='jp';salesData=null;render()">JP</button>
+      <button class="pill ${region==='kr'?'active':''}" style="font-size:11px;padding:4px 12px;" onclick="region='kr';salesData=null;render()">KR</button>
+    </div>
+    <div class="sep" style="height:20px;"></div>
+    <span class="sales-filter-label">${t('salesDateLabel')}</span>
+    <input type="date" class="sales-date-input" value="${salesStart}"
+      onchange="salesStart=this.value">
+    <span class="sales-sep">~</span>
+    <input type="date" class="sales-date-input" value="${salesEnd}"
+      onchange="salesEnd=this.value">
+    <button class="sales-fetch-btn" onclick="salesFetch()">${t('salesFetchBtn')}</button>
+  </div>`;
+
+  // 가상 데이터 알림
+  const mockNotice = `<div class="sales-mock-notice">${t('salesMockNotice')}</div>`;
+
+  // 미조회 상태
+  if (!salesData) {
+    return `<div class="sales-page">
+      ${filterBar}
+      ${mockNotice}
+      <div class="sales-empty">📋 ${t('salesEmpty')}</div>
+    </div>`;
+  }
+
+  // 결과 없음
+  if (salesData.length === 0) {
+    return `<div class="sales-page">
+      ${filterBar}
+      ${mockNotice}
+      <div class="sales-empty">😶 ${t('salesNoData')}</div>
+    </div>`;
+  }
+
+  const totalUc  = salesData.reduce((s, r) => s + r.ucTotal, 0);
+  const maxShare = Math.max(...salesData.map(r => r.shareRate));
+
+  const rows = salesData.map(r => {
+    const rankBadge = r.rank <= 3
+      ? `<span class="sales-rank-badge sales-rank-${r.rank}">${['🥇','🥈','🥉'][r.rank-1]}</span>`
+      : `<span class="sales-rank-badge sales-rank-n">${r.rank}</span>`;
+    const barW = maxShare > 0 ? Math.round(r.shareRate / maxShare * 80) : 0;
+    return `
+    <tr>
+      <td style="text-align:center;">${rankBadge}</td>
+      <td style="font-weight:600;min-width:160px;">${r.name}</td>
+      <td class="sales-uc-val">${fmtNum(r.ucTotal)} UC</td>
+      <td class="sales-usd-val">${fmtUsd(r.usdTotal)}</td>
+      <td>
+        <div class="sales-share-bar-wrap">
+          <div class="sales-share-bar" style="width:${barW}px;"></div>
+          <span class="sales-share-val">${r.shareRate.toFixed(1)}%</span>
+        </div>
+      </td>
+      <td>${r.saleStart}</td>
+      <td>${r.saleEnd}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="sales-page">
+    ${filterBar}
+    ${mockNotice}
+    <div class="sales-meta-row">
+      <span class="sales-meta-total">
+        ${t('salesTotalUc')}: <span style="color:#2563eb;">${fmtNum(totalUc)} UC</span>
+        &nbsp;≈&nbsp;<span style="color:#065f46;">${fmtUsd(totalUc / SALES_EX_RATE)}</span>
+      </span>
+      <span class="sales-meta-exrate">${t('salesExRate')}</span>
+    </div>
+    <div class="sales-table-wrap">
+      <table class="sales-table">
+        <thead>
+          <tr>
+            <th>${t('salesColRank')}</th>
+            <th>${t('salesColName')}</th>
+            <th>${t('salesColUc')}</th>
+            <th>${t('salesColUsd')}</th>
+            <th>${t('salesColShare')}</th>
+            <th>${t('salesColStart')}</th>
+            <th>${t('salesColEnd')}</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
 function setMainTab(tab) { mainTab=tab; render(); }
 
 // ── 업데이트 히스토리 ────────────────────
@@ -2273,10 +2524,19 @@ function render() {
   const mainTabsHtml = `
   <div class="main-tabs">
     <button class="mtab ${mainTab==='dashboard'?'active':''}" onclick="setMainTab('dashboard')">${t('tabDashboard')}</button>
+    <button class="mtab ${mainTab==='sales'?'active':''}" onclick="setMainTab('sales')">${t('tabSales')}</button>
     <button class="mtab ${mainTab==='compare'?'active':''}" onclick="setMainTab('compare')">${t('tabCompare')}</button>
     <button class="mtab ${mainTab==='changelog'?'active':''}" onclick="setMainTab('changelog')">${t('tabChangelog')}</button>
   </div>`;
 
+  if (mainTab === 'sales') {
+    document.getElementById('dash').innerHTML = mainTabsHtml + `
+    <div class="main" style="padding-top:16px;">
+      <div class="section-head"><span class="section-title">${t('salesTitle')}</span></div>
+      ${renderSalesPage()}
+    </div>`;
+    return;
+  }
   if (mainTab === 'compare') {
     document.getElementById('dash').innerHTML = mainTabsHtml + renderComparePage();
     return;
