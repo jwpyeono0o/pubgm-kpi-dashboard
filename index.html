@@ -2666,10 +2666,20 @@ async function salesFetch() {
     r.std_dt >= salesStart && r.std_dt <= salesEnd
   );
 
-  // product별 집계 (UC_Change_reason* 포함 전체)
+  // ── 표시에서 제외할 reason 코드 ──────────────────────────────────────────
+  // UC_Change_reason111: 크레이트 전체 구매의 합산값 (개별 크레이트가 별도로 존재하므로 중복)
+  // UC_Change_reason110: 상점 직접 구매 전체의 합산값 (개별 상품이 별도로 존재하므로 중복)
+  // → 개별 상품 행이 이미 집계에 포함되어 있어 이 두 항목까지 표시하면 이중 집계처럼 보임
+  const EXCLUDED_REASONS = new Set([
+    'UC_Change_reason111',
+    'UC_Change_reason110',
+  ]);
+
+  // product별 집계 (UC_Change_reason* 포함, 단 위 제외 목록은 스킵)
   const productMap = {};
   for (const r of filtered) {
     const key = r.product;
+    if (EXCLUDED_REASONS.has(key)) continue; // reason111(크레이트합산), reason110(상점합산) 제외
     if (!productMap[key]) {
       productMap[key] = { product:key, ucTotal:0, userTotal:0, firstDate:r.std_dt, lastDate:r.std_dt };
     }
