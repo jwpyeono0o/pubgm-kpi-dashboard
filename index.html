@@ -3828,41 +3828,46 @@ async function autoLoad() {
   salesStart = fmt(ago30); salesEnd = fmt(today);
 })();
 
-// ── 날짜 입력 전역 검증 ──────────────────────────────────────────────────────
-// 모든 type="date" 입력에 적용:
-//   · 연도 최대 4자리 (max="2099-12-31" → 브라우저가 4자리 초과 입력 거부)
-//   · 일/월 반드시 2자리 (change 시 강제 패딩)
+// ── 날짜 입력 전역 변환 ──────────────────────────────────────────────────────
+// type="date"의 브라우저 자동완성(한 자리 입력 → 자동 이동) 문제를 해결하기 위해
+// 모든 날짜 입력을 type="text"로 변환 후 자동 포맷팅 적용.
+// · 숫자만 입력 가능, 연도 4자리 + 월 2자리 + 일 2자리 입력 시 자동으로 '-' 삽입
+// · YYYY-MM-DD 형식 완성 전까지 onchange 이벤트가 의미있는 값을 반환하지 않음
+// · 기존 onchange 핸들러는 그대로 유지됨
 (function setupDateValidation() {
-  const MAX_DATE = '2099-12-31';
-  const MIN_DATE = '2000-01-01';
-
-  function applyConstraints(el) {
-    if (el.dataset.dvApplied) return;
-    el.dataset.dvApplied = '1';
-    if (!el.max) el.max = MAX_DATE;
-    if (!el.min) el.min = MIN_DATE;
+  function convertDateInput(el) {
+    if (el.dataset.dateConverted) return;
+    el.dataset.dateConverted = '1';
+    const savedVal = el.value; // date value (YYYY-MM-DD or "")
+    el.type = 'text';
+    el.value = savedVal;
+    el.setAttribute('maxlength', '10');
+    el.style.fontFamily = 'monospace, "Consolas", sans-serif';
+    el.style.letterSpacing = '0.5px';
+    if (!el.placeholder) el.placeholder = 'YYYY-MM-DD';
   }
 
-  // 이미 존재하는 입력에 적용
-  document.querySelectorAll('input[type="date"]').forEach(applyConstraints);
+  // 이미 존재하는 date 입력 변환
+  document.querySelectorAll('input[type="date"]').forEach(convertDateInput);
 
-  // 동적으로 생성되는 입력도 처리
+  // 동적으로 생성되는 date 입력도 처리 (렌더링 후 생성분)
   new MutationObserver(() => {
-    document.querySelectorAll('input[type="date"]:not([data-dv-applied])').forEach(applyConstraints);
+    document.querySelectorAll('input[type="date"]:not([data-date-converted])').forEach(convertDateInput);
   }).observe(document.body, {childList: true, subtree: true});
 
-  // change 시 연도 4자리 초과 / 일·월 1자리 강제 보정
-  document.addEventListener('change', function(e) {
+  // 자동 포맷팅: 숫자 입력 → YYYY-MM-DD 자동 완성
+  document.addEventListener('input', function(e) {
     const el = e.target;
-    if (el.type !== 'date' || !el.value) return;
-    const parts = el.value.split('-');
-    if (parts.length !== 3) return;
-    let [y, m, d] = parts;
-    let changed = false;
-    if (y.length > 4) { y = y.slice(0, 4); changed = true; }  // 연도 4자리로 자르기
-    if (m.length < 2) { m = m.padStart(2, '0'); changed = true; }  // 월 2자리 패딩
-    if (d.length < 2) { d = d.padStart(2, '0'); changed = true; }  // 일 2자리 패딩
-    if (changed) el.value = `${y}-${m}-${d}`;
+    if (!el.dataset.dateConverted) return;
+    const pos  = el.selectionStart;           // 커서 위치 기억
+    const raw  = el.value.replace(/\D/g, '').slice(0, 8); // 숫자만, 최대 8자리
+    let fmt = raw;
+    if (raw.length > 4) fmt = raw.slice(0,4) + '-' + raw.slice(4);
+    if (raw.length > 6) fmt = raw.slice(0,4) + '-' + raw.slice(4,6) + '-' + raw.slice(6);
+    el.value = fmt;
+    // 대시 삽입 위치에서 커서가 뒤로 안 가도록 보정
+    const added = fmt.length - raw.length; // 추가된 '-' 개수
+    try { el.setSelectionRange(pos + added, pos + added); } catch(_) {}
   }, true);
 })();
 
