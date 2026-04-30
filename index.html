@@ -1622,6 +1622,11 @@ let salesData      = null;  // null = 미조회, [] = 결과 없음, [...] = 결
 let salesLoading   = false;
 let salesUpdatedAt = '';
 let salesImgData   = {};  // {hash: {state:'loading'|'ok'|'none', url?}}
+// 판매 시작일/종료일 수기 입력 저장소 {hash: {start:'YYYY-MM-DD', end:'YYYY-MM-DD'}}
+// localStorage에 유지 (키: 'salesDateOverrides')
+let salesDateOverrides = (() => {
+  try { return JSON.parse(localStorage.getItem('salesDateOverrides') || '{}'); } catch(e) { return {}; }
+})();
 
 // 리텐션 탭 상태
 let retCountry  = 'ALL'; // ALL / JP / KR
@@ -2553,6 +2558,45 @@ async function uploadSalesImg(hash, file) {
   if (updated) updated.outerHTML = renderSalesImgCell(hash);
 }
 
+// ── 판매 시작일/종료일 수기 입력 ──────────────────────────────────────────────
+function saveSalesDate(hash, field, value) {
+  if (!salesDateOverrides[hash]) salesDateOverrides[hash] = {};
+  if (value) {
+    salesDateOverrides[hash][field] = value;
+  } else {
+    delete salesDateOverrides[hash][field];
+    if (!Object.keys(salesDateOverrides[hash]).length) delete salesDateOverrides[hash];
+  }
+  try { localStorage.setItem('salesDateOverrides', JSON.stringify(salesDateOverrides)); } catch(e) {}
+  // 해당 셀만 업데이트
+  const cellId = `sdc_${hash}_${field}`;
+  const cell = document.getElementById(cellId);
+  if (cell) cell.outerHTML = renderSalesDateCell(hash, field);
+}
+
+function renderSalesDateCell(hash, field) {
+  const val = salesDateOverrides[hash]?.[field] || '';
+  const ph  = field === 'start' ? (lang==='ja' ? '開始日' : '시작일') : (lang==='ja' ? '終了日' : '종료일');
+  if (val) {
+    // 입력된 날짜 — 클릭하면 수정 가능
+    return `<div id="sdc_${hash}_${field}" style="display:flex;align-items:center;gap:4px;">
+      <input type="date" value="${val}"
+        style="border:1px solid #d1d5db;border-radius:5px;padding:3px 6px;font-size:11px;color:#1e2535;background:#fff;cursor:pointer;"
+        onchange="saveSalesDate('${hash}','${field}',this.value)">
+    </div>`;
+  } else {
+    // 미입력 — 이미지 칸처럼 빈 입력 영역
+    return `<div id="sdc_${hash}_${field}"
+      style="min-width:90px;height:32px;border:1.5px dashed #d1d5db;border-radius:6px;
+             display:flex;align-items:center;justify-content:center;cursor:text;background:#fafafa;">
+      <input type="date"
+        style="border:none;background:transparent;font-size:11px;color:#9ca3af;cursor:pointer;width:100%;text-align:center;"
+        placeholder="${ph}"
+        onchange="saveSalesDate('${hash}','${field}',this.value)">
+    </div>`;
+  }
+}
+
 // 드래그 이벤트
 function onSalesImgDragOver(e, hash) {
   e.preventDefault();
@@ -2803,8 +2847,8 @@ function renderSalesPage() {
           <span class="sales-share-val">${r.shareRate.toFixed(1)}%</span>
         </div>
       </td>
-      <td style="vertical-align:middle;">${r.saleStart}</td>
-      <td style="vertical-align:middle;">${r.saleEnd}</td>
+      <td style="vertical-align:middle;padding:6px 8px;">${renderSalesDateCell(hash,'start')}</td>
+      <td style="vertical-align:middle;padding:6px 8px;">${renderSalesDateCell(hash,'end')}</td>
     </tr>`;
   }).join('');
 
