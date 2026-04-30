@@ -431,29 +431,35 @@
     .sales-usd-val { font-weight:700; color:#065f46; }
     .sales-empty { text-align:center; padding:48px 20px; color:#9ca3af; font-size:13px; }
 
-    /* 배너 업로드 존 */
-    .sales-banner-outer { margin-bottom:18px; }
-    .sales-banner-zone {
-      width:100%; max-width:600px;
+    /* 행별 상품 이미지 셀 */
+    .sales-img-cell {
+      width:160px; min-width:140px;
       aspect-ratio:456/210;
-      border:2px dashed #d1d9e6; border-radius:12px;
+      border:1.5px dashed #d1d9e6; border-radius:8px;
       background:#f8faff;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+      cursor:pointer; transition:all .18s; position:relative; overflow:hidden;
     }
-    .sales-banner-zone.dragover  { border-color:#2563eb; background:#eff6ff; }
-    .sales-banner-zone.has-image { border:none; cursor:default; }
-    .sales-banner-zone img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:10px; }
-    .sales-banner-hint { font-size:12px; font-weight:700; color:#6b7280; margin-top:8px; pointer-events:none; }
-    .sales-banner-sub  { font-size:10px; color:#9ca3af; margin-top:4px; pointer-events:none; }
-    .sales-banner-replace {
-      position:absolute; bottom:10px; right:10px;
-      background:rgba(0,0,0,0.52); color:#fff; border:none;
-      padding:5px 12px; border-radius:6px; font-size:11px; font-weight:700;
-      cursor:pointer; opacity:0; transition:opacity .2s;
+    .sales-img-cell:hover  { border-color:#2563eb; background:#eff6ff; }
+    .sales-img-cell.dragover { border-color:#2563eb; background:#dbeafe; }
+    .sales-img-cell.has-img  { border:none; cursor:default; }
+    .sales-img-cell img {
+      position:absolute; inset:0; width:100%; height:100%;
+      object-fit:cover; border-radius:7px; display:block;
     }
-    .sales-banner-zone.has-image:hover .sales-banner-replace { opacity:1; }
-    .sales-banner-uploading { font-size:12px; color:#6b7280; animation:pulse 1.2s infinite; }
+    .sales-img-empty-icon { font-size:18px; pointer-events:none; opacity:.5; }
+    .sales-img-empty-hint { font-size:9px; color:#9ca3af; margin-top:3px; pointer-events:none; text-align:center; line-height:1.4; }
+    .sales-img-replace {
+      position:absolute; inset:0; background:rgba(0,0,0,0);
+      display:flex; align-items:center; justify-content:center;
+      border-radius:7px; transition:background .18s; cursor:pointer;
+    }
+    .sales-img-cell.has-img:hover .sales-img-replace { background:rgba(0,0,0,0.38); }
+    .sales-img-replace-label {
+      color:#fff; font-size:10px; font-weight:700; opacity:0; transition:opacity .18s;
+      background:rgba(0,0,0,0.5); padding:3px 9px; border-radius:4px;
+    }
+    .sales-img-cell.has-img:hover .sales-img-replace-label { opacity:1; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
     /* result table multi-period */
     .comp-table th.th-base { background:#eff6ff; color:#2563eb; }
@@ -877,12 +883,12 @@ const I18N = {
     salesNoData:'해당 기간에 데이터가 없습니다.',
     salesExRate:'환율 기준: 1 USD = 124.85 UC',
     salesTotalUc:'기간 내 Total UC',
-    salesBannerDrop:'이미지를 드래그하거나 클릭하여 업로드',
-    salesBannerSub:'456 × 210 비율 권장',
-    salesBannerReplace:'🔄 교체',
-    salesBannerUploading:'업로드 중...',
-    salesBannerOk:'✅ 이미지 저장 완료',
-    salesBannerFail:'❌ 업로드 실패',
+    salesColImg:'이미지',
+    salesImgDrop:'드래그 / 클릭',
+    salesImgRatio:'약 2.2:1 비율 권장',
+    salesImgReplace:'🔄 교체',
+    salesImgUploading:'업로드 중...',
+    salesImgFail:'❌ 업로드 실패',
   },
   ja: {
     title:'KRAFTON KPI ダッシュボード',
@@ -986,12 +992,12 @@ const I18N = {
     salesNoData:'該当期間にデータがありません。',
     salesExRate:'為替レート基準: 1 USD = 124.85 UC',
     salesTotalUc:'期間内 Total UC',
-    salesBannerDrop:'画像をドラッグまたはクリックしてアップロード',
-    salesBannerSub:'456 × 210 比率推奨',
-    salesBannerReplace:'🔄 変更',
-    salesBannerUploading:'アップロード中...',
-    salesBannerOk:'✅ 画像保存完了',
-    salesBannerFail:'❌ アップロード失敗',
+    salesColImg:'画像',
+    salesImgDrop:'ドラッグ / クリック',
+    salesImgRatio:'約 2.2:1 比率推奨',
+    salesImgReplace:'🔄 変更',
+    salesImgUploading:'アップロード中...',
+    salesImgFail:'❌ アップロード失敗',
   }
 };
 
@@ -1515,8 +1521,7 @@ let COLLABS = [];
 let salesStart = '';
 let salesEnd   = '';
 let salesData  = null;  // null = 미조회, [] = 결과 없음, [...] = 결과
-let salesBannerUrl       = null;   // null=미로드, ''=없음, url=있음
-let salesBannerUploading = false;
+let salesImgData = {};  // {hash: {state:'loading'|'ok'|'none', url?}}
 let collabMgmtOpen = false;
 let editingCollabId = null;
 
@@ -2003,117 +2008,110 @@ function renderComparePage() {
 // 1 USD = 124.85 UC (실측 기준)
 const SALES_EX_RATE = 124.85;
 
-const SALES_BANNER_PATH = 'data/sales_banner.jpg';
+// ── 상품별 이미지 처리 ──────────────────
+const SALES_IMG_DIR = 'data/sales_imgs/';
 
-// 배너 이미지 GitHub에서 로드
-async function loadSalesBanner() {
-  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/${SALES_BANNER_PATH}?t=${Date.now()}`;
-  try {
-    const r = await fetch(url, {method:'HEAD'});
-    salesBannerUrl = r.ok ? url : '';
-  } catch(e) { salesBannerUrl = ''; }
-  if (mainTab === 'sales') render();
+// 상품명 → 안정적인 짧은 해시
+function productHash(name) {
+  let h = 0;
+  for (const c of name) h = (Math.imul(31, h) + c.charCodeAt(0)) | 0;
+  return Math.abs(h).toString(36).padStart(6, '0');
 }
 
-// 이미지 → canvas로 JPEG 변환 후 GitHub 업로드
-async function uploadSalesBanner(file) {
-  if (!file || !file.type.startsWith('image/')) return;
-  salesBannerUploading = true;
-  if (mainTab === 'sales') render();
+// 이미지 존재 여부 비동기 확인
+async function checkSalesImg(hash) {
+  salesImgData[hash] = {state:'loading'};
+  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/${SALES_IMG_DIR}${hash}.jpg?t=${Date.now()}`;
   try {
-    // canvas로 리사이즈 + JPEG 변환 (max 912×421 @2x)
+    const r = await fetch(url, {method:'HEAD'});
+    salesImgData[hash] = r.ok ? {state:'ok', url} : {state:'none'};
+  } catch(e) { salesImgData[hash] = {state:'none'}; }
+  // DOM 직접 업데이트 (전체 re-render 없이)
+  const cell = document.getElementById(`sic_${hash}`);
+  if (cell) cell.outerHTML = renderSalesImgCell(hash);
+}
+
+// 이미지 → JPEG 변환 후 GitHub 업로드
+async function uploadSalesImg(hash, file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  salesImgData[hash] = {state:'loading'};
+  const cell = document.getElementById(`sic_${hash}`);
+  if (cell) cell.outerHTML = `<div id="sic_${hash}" class="sales-img-cell" style="cursor:default;font-size:10px;color:#9ca3af;animation:pulse 1.2s infinite;">${t('salesImgUploading')}</div>`;
+
+  try {
     const bitmap = await createImageBitmap(file);
-    const maxW = 912, maxH = 421;
+    // 리사이즈: max 640×295 (2x 기준)
+    const maxW = 640, maxH = 295;
     let w = bitmap.width, h = bitmap.height;
     if (w > maxW || h > maxH) {
-      const ratio = Math.min(maxW/w, maxH/h);
-      w = Math.round(w * ratio); h = Math.round(h * ratio);
+      const sc = Math.min(maxW / w, maxH / h);
+      w = Math.round(w * sc); h = Math.round(h * sc);
     }
     const canvas = document.createElement('canvas');
     canvas.width = w; canvas.height = h;
     canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-    const base64  = dataUrl.split(',')[1];
+    const base64 = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
 
-    // GitHub API 업로드
-    const headers = { 'Authorization': `token ${GH_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' };
-    const apiUrl  = `https://api.github.com/repos/${GH_REPO}/contents/${SALES_BANNER_PATH}`;
+    const headers = {'Authorization': `token ${GH_TOKEN}`, 'Accept': 'application/vnd.github.v3+json'};
+    const apiUrl  = `https://api.github.com/repos/${GH_REPO}/contents/${SALES_IMG_DIR}${hash}.jpg`;
     const existing = await fetch(apiUrl, {headers}).then(r => r.ok ? r.json() : {});
-    const sha = existing.sha || '';
-    const body = { message: '[Dashboard] 판매 실적 배너 업데이트', content: base64 };
-    if (sha) body.sha = sha;
+    const body = {message: `[Dashboard] 판매 실적 상품 이미지 업데이트 (${hash})`, content: base64};
+    if (existing.sha) body.sha = existing.sha;
     const res = await fetch(apiUrl, {method:'PUT', headers:{...headers,'Content-Type':'application/json'}, body: JSON.stringify(body)});
     if (res.ok) {
-      salesBannerUrl = `https://raw.githubusercontent.com/${GH_REPO}/main/${SALES_BANNER_PATH}?t=${Date.now()}`;
+      const url = `https://raw.githubusercontent.com/${GH_REPO}/main/${SALES_IMG_DIR}${hash}.jpg?t=${Date.now()}`;
+      salesImgData[hash] = {state:'ok', url};
     } else {
-      alert(t('salesBannerFail'));
+      alert(t('salesImgFail')); salesImgData[hash] = {state:'none'};
     }
-  } catch(e) {
-    alert(t('salesBannerFail') + ': ' + e.message);
-  }
-  salesBannerUploading = false;
-  if (mainTab === 'sales') render();
+  } catch(e) { alert(t('salesImgFail') + ': ' + e.message); salesImgData[hash] = {state:'none'}; }
+
+  const updated = document.getElementById(`sic_${hash}`);
+  if (updated) updated.outerHTML = renderSalesImgCell(hash);
 }
 
-function handleSalesBannerDrop(e) {
+// 드래그 이벤트
+function onSalesImgDragOver(e, hash) {
   e.preventDefault();
-  document.getElementById('salesBannerZone')?.classList.remove('dragover');
+  document.getElementById(`sic_${hash}`)?.classList.add('dragover');
+}
+function onSalesImgDragLeave(hash) {
+  document.getElementById(`sic_${hash}`)?.classList.remove('dragover');
+}
+function onSalesImgDrop(e, hash) {
+  e.preventDefault();
+  document.getElementById(`sic_${hash}`)?.classList.remove('dragover');
   const file = e.dataTransfer?.files?.[0];
-  if (file) uploadSalesBanner(file);
+  if (file) uploadSalesImg(hash, file);
 }
 
-function renderSalesBanner() {
-  if (salesBannerUploading) {
-    return `<div class="sales-banner-outer">
-      <div class="sales-banner-zone" style="cursor:default;">
-        <span style="font-size:28px;">🖼️</span>
-        <span class="sales-banner-uploading" style="margin-top:8px;">${t('salesBannerUploading')}</span>
-      </div>
-    </div>`;
+// 셀 HTML 생성
+function renderSalesImgCell(hash) {
+  const d   = salesImgData[hash];
+  const fid = `sif_${hash}`;
+  const uploadAttrs = `
+    ondragover="onSalesImgDragOver(event,'${hash}')"
+    ondragleave="onSalesImgDragLeave('${hash}')"
+    ondrop="onSalesImgDrop(event,'${hash}')"
+    onclick="document.getElementById('${fid}').click()"`;
+  const fileInput = `<input type="file" id="${fid}" accept="image/*" style="display:none" onchange="uploadSalesImg('${hash}',this.files[0])">`;
+
+  if (!d || d.state === 'loading') {
+    return `<div id="sic_${hash}" class="sales-img-cell" style="cursor:default;font-size:10px;color:#bbb;animation:pulse 1.2s infinite;">...</div>`;
   }
-  if (salesBannerUrl === null) {
-    // 아직 로드 안됨 — 빈 존 표시
-    return `<div class="sales-banner-outer">
-      <div class="sales-banner-zone" id="salesBannerZone"
-        ondragover="event.preventDefault();document.getElementById('salesBannerZone').classList.add('dragover')"
-        ondragleave="document.getElementById('salesBannerZone').classList.remove('dragover')"
-        ondrop="handleSalesBannerDrop(event)"
-        onclick="document.getElementById('salesBannerInput').click()">
-        <input type="file" id="salesBannerInput" accept="image/*" style="display:none"
-          onchange="uploadSalesBanner(this.files[0])">
-        <span style="font-size:32px;">🖼️</span>
-        <span class="sales-banner-hint">${t('salesBannerDrop')}</span>
-        <span class="sales-banner-sub">${t('salesBannerSub')}</span>
-      </div>
-    </div>`;
-  }
-  if (salesBannerUrl === '') {
-    // 이미지 없음 — 업로드 유도
-    return `<div class="sales-banner-outer">
-      <div class="sales-banner-zone" id="salesBannerZone"
-        ondragover="event.preventDefault();document.getElementById('salesBannerZone').classList.add('dragover')"
-        ondragleave="document.getElementById('salesBannerZone').classList.remove('dragover')"
-        ondrop="handleSalesBannerDrop(event)"
-        onclick="document.getElementById('salesBannerInput').click()">
-        <input type="file" id="salesBannerInput" accept="image/*" style="display:none"
-          onchange="uploadSalesBanner(this.files[0])">
-        <span style="font-size:32px;">🖼️</span>
-        <span class="sales-banner-hint">${t('salesBannerDrop')}</span>
-        <span class="sales-banner-sub">${t('salesBannerSub')}</span>
-      </div>
+  if (d.state === 'none') {
+    return `<div id="sic_${hash}" class="sales-img-cell" ${uploadAttrs}>
+      ${fileInput}
+      <span class="sales-img-empty-icon">🖼️</span>
+      <span class="sales-img-empty-hint">${t('salesImgDrop')}<br><span style="font-size:8px;opacity:.7;">${t('salesImgRatio')}</span></span>
     </div>`;
   }
   // 이미지 있음
-  return `<div class="sales-banner-outer">
-    <div class="sales-banner-zone has-image" id="salesBannerZone"
-      ondragover="event.preventDefault();document.getElementById('salesBannerZone').classList.add('dragover')"
-      ondragleave="document.getElementById('salesBannerZone').classList.remove('dragover')"
-      ondrop="handleSalesBannerDrop(event)">
-      <input type="file" id="salesBannerInput" accept="image/*" style="display:none"
-        onchange="uploadSalesBanner(this.files[0])">
-      <img src="${salesBannerUrl}" alt="sales banner"
-        onerror="salesBannerUrl='';render()">
-      <button class="sales-banner-replace" onclick="document.getElementById('salesBannerInput').click()">${t('salesBannerReplace')}</button>
+  return `<div id="sic_${hash}" class="sales-img-cell has-img" ${uploadAttrs}>
+    ${fileInput}
+    <img src="${d.url}" alt="">
+    <div class="sales-img-replace">
+      <span class="sales-img-replace-label">${t('salesImgReplace')}</span>
     </div>
   </div>`;
 }
@@ -2190,12 +2188,9 @@ function renderSalesPage() {
   // 가상 데이터 알림
   const mockNotice = `<div class="sales-mock-notice">${t('salesMockNotice')}</div>`;
 
-  const bannerHtml = renderSalesBanner();
-
   // 미조회 상태
   if (!salesData) {
     return `<div class="sales-page">
-      ${bannerHtml}
       ${filterBar}
       ${mockNotice}
       <div class="sales-empty">📋 ${t('salesEmpty')}</div>
@@ -2205,7 +2200,6 @@ function renderSalesPage() {
   // 결과 없음
   if (salesData.length === 0) {
     return `<div class="sales-page">
-      ${bannerHtml}
       ${filterBar}
       ${mockNotice}
       <div class="sales-empty">😶 ${t('salesNoData')}</div>
@@ -2216,29 +2210,33 @@ function renderSalesPage() {
   const maxShare = Math.max(...salesData.map(r => r.shareRate));
 
   const rows = salesData.map(r => {
+    const hash = productHash(r.name);
+    // 아직 확인 안 된 이미지는 비동기로 체크
+    if (!salesImgData[hash]) checkSalesImg(hash);
+
     const rankBadge = r.rank <= 3
       ? `<span class="sales-rank-badge sales-rank-${r.rank}">${['🥇','🥈','🥉'][r.rank-1]}</span>`
       : `<span class="sales-rank-badge sales-rank-n">${r.rank}</span>`;
     const barW = maxShare > 0 ? Math.round(r.shareRate / maxShare * 80) : 0;
     return `
     <tr>
-      <td style="text-align:center;">${rankBadge}</td>
-      <td style="font-weight:600;min-width:160px;">${r.name}</td>
-      <td class="sales-uc-val">${fmtNum(r.ucTotal)} UC</td>
-      <td class="sales-usd-val">${fmtUsd(r.usdTotal)}</td>
-      <td>
+      <td style="text-align:center;vertical-align:middle;">${rankBadge}</td>
+      <td style="font-weight:600;min-width:130px;vertical-align:middle;">${r.name}</td>
+      <td style="padding:10px 12px;vertical-align:middle;">${renderSalesImgCell(hash)}</td>
+      <td class="sales-uc-val" style="vertical-align:middle;">${fmtNum(r.ucTotal)} UC</td>
+      <td class="sales-usd-val" style="vertical-align:middle;">${fmtUsd(r.usdTotal)}</td>
+      <td style="vertical-align:middle;">
         <div class="sales-share-bar-wrap">
           <div class="sales-share-bar" style="width:${barW}px;"></div>
           <span class="sales-share-val">${r.shareRate.toFixed(1)}%</span>
         </div>
       </td>
-      <td>${r.saleStart}</td>
-      <td>${r.saleEnd}</td>
+      <td style="vertical-align:middle;">${r.saleStart}</td>
+      <td style="vertical-align:middle;">${r.saleEnd}</td>
     </tr>`;
   }).join('');
 
   return `<div class="sales-page">
-    ${bannerHtml}
     ${filterBar}
     ${mockNotice}
     <div class="sales-meta-row">
@@ -2254,6 +2252,7 @@ function renderSalesPage() {
           <tr>
             <th>${t('salesColRank')}</th>
             <th>${t('salesColName')}</th>
+            <th>${t('salesColImg')}</th>
             <th>${t('salesColUc')}</th>
             <th>${t('salesColUsd')}</th>
             <th>${t('salesColShare')}</th>
@@ -2689,8 +2688,6 @@ function render() {
   </div>`;
 
   if (mainTab === 'sales') {
-    // 배너 아직 로드 안됐으면 비동기로 로드
-    if (salesBannerUrl === null && !salesBannerUploading) loadSalesBanner();
     document.getElementById('dash').innerHTML = mainTabsHtml + `
     <div class="main" style="padding-top:16px;">
       <div class="section-head"><span class="section-title">${t('salesTitle')}</span></div>
