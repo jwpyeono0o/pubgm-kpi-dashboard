@@ -151,11 +151,11 @@
     .ptab:hover:not(.active) { color:#374151; background:#f9fafb; }
 
     /* ── TABLES ── */
-    .table-block { background:#fff; border:1px solid #e3e8f0; border-radius:11px; overflow:hidden; }
+    .table-block { background:#fff; border:1px solid #e3e8f0; border-radius:11px; overflow:hidden; width:100%; }
     .tbl-wrap    { overflow-x:auto; overflow-y:auto; max-height:440px; }
 
     table.data-table {
-      border-collapse:collapse; font-size:11.5px; white-space:nowrap;
+      border-collapse:collapse; font-size:11.5px; white-space:nowrap; width:100%;
     }
     /* 섹션 헤더 (Traffic / Sales) */
     table.data-table thead tr.hdr-section th {
@@ -666,19 +666,21 @@
     .dash-section { margin-bottom:32px; }
     .dash-section-header {
       display:flex; align-items:center; gap:10px;
-      margin-bottom:16px; padding-bottom:10px;
-      border-bottom:2px solid #e3e8f0;
+      margin-bottom:20px; padding:11px 16px;
+      background:linear-gradient(90deg,#eff6ff 0%,#f8faff 100%);
+      border-radius:10px;
+      border-left:4px solid #2563eb;
     }
     .dash-section-title {
-      font-size:13px; font-weight:800; color:#374151;
-      letter-spacing:0.4px; text-transform:uppercase;
+      font-size:14px; font-weight:800; color:#1e2535;
+      letter-spacing:0.2px;
     }
     .section-num {
       display:inline-flex; align-items:center; justify-content:center;
-      width:22px; height:22px; border-radius:50%;
+      width:26px; height:26px; border-radius:50%;
       background:#2563eb; color:#fff;
-      font-size:11px; font-weight:800; flex-shrink:0;
-      line-height:1;
+      font-size:12px; font-weight:800; flex-shrink:0;
+      line-height:1; box-shadow:0 2px 6px rgba(37,99,235,0.35);
     }
 
     /* ── 공통 컨트롤 바 (조회 기간 / 기준일) ── */
