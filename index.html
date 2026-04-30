@@ -2367,6 +2367,21 @@ function renderRetPage() {
   const cohortDnList  = ['D+1','D+7','D+14','D+30'];
   const cohortDnKeys  = {'D+1':'d1','D+7':'d7','D+14':'d14','D+30':'d30'};
   const cohortCardCol = ['#3b82f6','#10b981','#f59e0b','#8b5cf6'];
+  // 값 비율(0~1)에 따라 연한색→진한색 보간 (HSL)
+  // [H, S_light, L_light] → [H, S_dark, L_dark]
+  const cohortColorRange = [
+    [[217,70,92],[217,91,30]],   // D+1  blue:  #dbeafe → #1e3a8a
+    [[158,55,90],[158,84,22]],   // D+7  green: #d1fae5 → #064e3b
+    [[ 38,80,92],[ 38,92,32]],   // D+14 amber: #fef3c7 → #92400e
+    [[260,65,93],[260,84,38]],   // D+30 purple:#ede9fe → #4c1d95
+  ];
+  const lerpColor = (range, ratio) => {
+    const [lo, hi] = range;
+    const h = lo[0] + (hi[0]-lo[0])*ratio;
+    const s = lo[1] + (hi[1]-lo[1])*ratio;
+    const l = lo[2] + (hi[2]-lo[2])*ratio;
+    return `hsl(${h.toFixed(0)},${s.toFixed(0)}%,${l.toFixed(0)}%)`;
+  };
 
   let cohortYears = [];
   let cohortByYear = {};
@@ -2394,17 +2409,20 @@ function renderRetPage() {
       ${cohortDnList.map((dn,i) => {
         const col = cohortCardCol[i];
         const maxVal = Math.max(...cohortYears.map(yr => cohortByYear[yr]?.[dn] || 0), 1);
+        const cRange = cohortColorRange[i];
         return `<div style="background:#fff;border:1px solid #e3e8f0;border-radius:10px;padding:16px 18px;border-top:3px solid ${col};">
           <div style="font-size:13px;font-weight:700;color:${col};margin-bottom:14px;">${dn}</div>
           ${cohortYears.length
             ? `<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
                 ${cohortYears.map(yr => {
                   const val = cohortByYear[yr]?.[dn];
-                  const barH = val != null ? Math.round(val / maxVal * 100) : 0;
-                  const opacity = val != null ? (0.25 + (val / maxVal) * 0.75).toFixed(2) : '0.15';
+                  const ratio = val != null ? val / maxVal : 0;
+                  const barH  = val != null ? Math.max(Math.round(ratio * 110), 3) : 3;
+                  const barCol  = lerpColor(cRange, ratio);
+                  const textCol = lerpColor(cRange, Math.min(ratio + 0.15, 1));
                   return `<div style="text-align:center;flex:1;min-width:40px;">
-                    <div style="font-size:11px;font-weight:700;color:${col};opacity:${opacity};margin-bottom:4px;">${val!=null?val.toFixed(1)+'%':'—'}</div>
-                    <div style="width:100%;height:${Math.max(barH,3)}px;background:${col};opacity:${opacity};border-radius:4px 4px 0 0;"></div>
+                    <div style="font-size:11px;font-weight:700;color:${textCol};margin-bottom:4px;">${val!=null?val.toFixed(1)+'%':'—'}</div>
+                    <div style="width:100%;height:${barH}px;background:${barCol};border-radius:4px 4px 0 0;"></div>
                     <div style="font-size:10px;color:#6b7280;margin-top:5px;border-top:1px solid #e3e8f0;padding-top:4px;">${yr}</div>
                   </div>`;
                 }).join('')}
