@@ -2125,14 +2125,14 @@ function hmClass(val, min, max) {
 
 // ── retention.json 캐시 ──
 let _retJsonCache  = null;  // {updated_at, daily:[], cohort:[]}
-let _spinJsonCache = null;  // {updated_at, kpi_daily:[], uc_daily:[]}
+let _salesJsonCache = null;  // {updated_at, daily:[]}
 
-async function loadSpinJson() {
-  if (_spinJsonCache) return _spinJsonCache;
-  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/data/spin.json?t=${Date.now()}`;
+async function loadSalesJson() {
+  if (_salesJsonCache) return _salesJsonCache;
+  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/data/sales.json?t=${Date.now()}`;
   try {
     const r = await fetch(url);
-    if (r.ok) { _spinJsonCache = await r.json(); return _spinJsonCache; }
+    if (r.ok) { _salesJsonCache = await r.json(); return _salesJsonCache; }
   } catch(e) {}
   return null;
 }
@@ -2634,7 +2634,7 @@ async function salesFetch() {
   salesLoading = true; salesData = null;
   render();
 
-  const json = await loadSpinJson();
+  const json = await loadSalesJson();
   salesLoading = false;
 
   if (!json) { salesData = []; render(); return; }
@@ -2642,71 +2642,45 @@ async function salesFetch() {
 
   const country = region.toUpperCase(); // 'JP' or 'KR'
 
-  // kpi_daily 필터: 국가 + 날짜 범위
-  const filtered = (json.kpi_daily || []).filter(r =>
+  // daily 필터: 국가 + 날짜 범위
+  const filtered = (json.daily || []).filter(r =>
     r.country === country &&
     r.std_dt >= salesStart && r.std_dt <= salesEnd
   );
 
-  // spin_contents별 집계
+  // product별 집계
   const productMap = {};
   for (const r of filtered) {
-    const key = r.spin_contents;
+    const key = r.product;
     if (!productMap[key]) {
       productMap[key] = {
-        spin_contents: key,
-        launch_spin_date: r.launch_spin_date,
-        duration: r.duration,
-        ucTotal: 0,
+        product:   key,
+        ucTotal:   0,
         userTotal: 0,
+        firstDate: r.std_dt,
+        lastDate:  r.std_dt,
       };
     }
     productMap[key].ucTotal   += r.total_amount;
     productMap[key].userTotal += r.total_user;
-    // launch_spin_date는 가장 이른 날짜 사용
-    if (r.launch_spin_date && r.launch_spin_date < productMap[key].launch_spin_date) {
-      productMap[key].launch_spin_date = r.launch_spin_date;
-      productMap[key].duration = r.duration;
-    }
+    if (r.std_dt < productMap[key].firstDate) productMap[key].firstDate = r.std_dt;
+    if (r.std_dt > productMap[key].lastDate)  productMap[key].lastDate  = r.std_dt;
   }
-
-  // 날짜 + duration → 종료일
-  const addDays = (dateStr, days) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    d.setDate(d.getDate() + (days || 1) - 1);
-    return d.toISOString().slice(0, 10);
-  };
-
-  // COLLABS 이름 매칭 (launch_spin_date가 콜라브 기간과 겹치면 이름 사용)
-  const findCollabName = (launchDate, dur) => {
-    if (!launchDate) return null;
-    const endDate = addDays(launchDate, dur);
-    const match = COLLABS.find(c =>
-      c.type === 'spin' && c.start <= endDate && c.end >= launchDate
-    );
-    return match ? match.name : null;
-  };
 
   // 정렬 + 상위 15개 변환
   const sorted = Object.values(productMap).sort((a, b) => b.ucTotal - a.ucTotal);
   const totalUc = sorted.reduce((s, r) => s + r.ucTotal, 0);
 
-  salesData = sorted.slice(0, 15).map((r, i) => {
-    const collabName = findCollabName(r.launch_spin_date, r.duration);
-    const name = collabName || `#${r.spin_contents}`;
-    return {
-      rank:          i + 1,
-      name,
-      spin_contents: r.spin_contents,
-      ucTotal:       r.ucTotal,
-      usdTotal:      r.ucTotal / SALES_EX_RATE,
-      shareRate:     totalUc > 0 ? (r.ucTotal / totalUc * 100) : 0,
-      saleStart:     r.launch_spin_date || '',
-      saleEnd:       addDays(r.launch_spin_date, r.duration),
-      userTotal:     r.userTotal,
-    };
-  });
+  salesData = sorted.slice(0, 15).map((r, i) => ({
+    rank:      i + 1,
+    name:      r.product,
+    ucTotal:   r.ucTotal,
+    usdTotal:  r.ucTotal / SALES_EX_RATE,
+    shareRate: totalUc > 0 ? (r.ucTotal / totalUc * 100) : 0,
+    saleStart: r.firstDate,
+    saleEnd:   r.lastDate,
+    userTotal: r.userTotal,
+  }));
   render();
 }
 
