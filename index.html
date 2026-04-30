@@ -2156,9 +2156,9 @@ async function retFetch() {
       date:     r.date,
       country:  r.country,
       step:     r.step,
-      exist:    r.user_type === 'Exist'  ? {d1:r.d1, d7:r.d7, d14:r.d14, d30:r.d30} : null,
-      new_u:    r.user_type === 'New'    ? {d1:r.d1, d7:r.d7, d14:r.d14, d30:r.d30} : null,
-      return_u: r.user_type === 'Return' ? {d1:r.d1, d7:r.d7, d14:r.d14, d30:r.d30} : null,
+      exist:    r.user_type === 'Exist'  ? {d1:r.d1, d3:r.d3, d7:r.d7, d14:r.d14, d30:r.d30} : null,
+      new_u:    r.user_type === 'New'    ? {d1:r.d1, d3:r.d3, d7:r.d7, d14:r.d14, d30:r.d30} : null,
+      return_u: r.user_type === 'Return' ? {d1:r.d1, d3:r.d3, d7:r.d7, d14:r.d14, d30:r.d30} : null,
       cohort:   null,
     }));
 
@@ -2200,13 +2200,14 @@ function generateRetMock(start, end, country, step, type) {
   const d = new Date(start);
   const endD = new Date(end);
   // 베이스 수치 (Step1 기준)
-  const base = { Exist:{d1:73,d7:63,d14:57,d30:48}, New:{d1:42,d7:16,d14:10,d30:6}, Return:{d1:34,d7:19,d14:14,d30:11} };
+  const base = { Exist:{d1:73,d3:68,d7:63,d14:57,d30:48}, New:{d1:42,d3:28,d7:16,d14:10,d30:6}, Return:{d1:34,d3:26,d7:19,d14:14,d30:11} };
   const stepMult = step === '2' ? 0.95 : 1; // Step2는 약간 낮은 수치
   while (d <= endD) {
     const iso = d.toISOString().slice(0,10);
     const noise = () => (Math.random()-0.5)*4;
     const mk = (b) => ({
       d1:  +(Math.min(99, Math.max(0, b.d1  * stepMult + noise()))).toFixed(2),
+      d3:  +(Math.min(99, Math.max(0, b.d3  * stepMult + noise()))).toFixed(2),
       d7:  +(Math.min(99, Math.max(0, b.d7  * stepMult + noise()))).toFixed(2),
       d14: +(Math.min(99, Math.max(0, b.d14 * stepMult + noise()))).toFixed(2),
       d30: +(Math.min(99, Math.max(0, b.d30 * stepMult + noise()))).toFixed(2),
