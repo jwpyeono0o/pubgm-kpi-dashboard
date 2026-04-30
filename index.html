@@ -1616,10 +1616,12 @@ let normDays = '';
 let COLLABS = [];
 
 // 판매 실적 탭 상태
-let salesStart = '';
-let salesEnd   = '';
-let salesData  = null;  // null = 미조회, [] = 결과 없음, [...] = 결과
-let salesImgData = {};  // {hash: {state:'loading'|'ok'|'none', url?}}
+let salesStart     = '';
+let salesEnd       = '';
+let salesData      = null;  // null = 미조회, [] = 결과 없음, [...] = 결과
+let salesLoading   = false;
+let salesUpdatedAt = '';
+let salesImgData   = {};  // {hash: {state:'loading'|'ok'|'none', url?}}
 
 // 리텐션 탭 상태
 let retCountry  = 'ALL'; // ALL / JP / KR
@@ -2122,7 +2124,18 @@ function hmClass(val, min, max) {
 }
 
 // ── retention.json 캐시 ──
-let _retJsonCache = null;  // {updated_at, daily:[], cohort:[]}
+let _retJsonCache  = null;  // {updated_at, daily:[], cohort:[]}
+let _spinJsonCache = null;  // {updated_at, kpi_daily:[], uc_daily:[]}
+
+async function loadSpinJson() {
+  if (_spinJsonCache) return _spinJsonCache;
+  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/data/spin.json?t=${Date.now()}`;
+  try {
+    const r = await fetch(url);
+    if (r.ok) { _spinJsonCache = await r.json(); return _spinJsonCache; }
+  } catch(e) {}
+  return null;
+}
 
 async function loadRetJson() {
   if (_retJsonCache) return _retJsonCache;
@@ -2614,22 +2627,86 @@ const SALES_MOCK = {
   ]
 };
 
-function salesFetch() {
+async function salesFetch() {
   if (!salesStart || !salesEnd) { alert(t('alertRangeFill')); return; }
   if (salesStart > salesEnd)    { alert(t('alertDateOrder')); return; }
-  // ── Databricks 연동 시 이 부분을 실제 fetch로 교체 ──
-  // 현재는 mock 데이터를 그대로 사용
-  const mockRaw = SALES_MOCK[region] || [];
-  const totalUc = mockRaw.reduce((s, r) => s + r.ucTotal, 0);
-  salesData = mockRaw.map((r, i) => ({
-    rank:      i + 1,
-    name:      r.name,
-    ucTotal:   r.ucTotal,
-    usdTotal:  r.ucTotal / SALES_EX_RATE,
-    shareRate: totalUc > 0 ? (r.ucTotal / totalUc * 100) : 0,
-    saleStart: r.saleStart,
-    saleEnd:   r.saleEnd,
-  }));
+
+  salesLoading = true; salesData = null;
+  render();
+
+  const json = await loadSpinJson();
+  salesLoading = false;
+
+  if (!json) { salesData = []; render(); return; }
+  salesUpdatedAt = json.updated_at || '';
+
+  const country = region.toUpperCase(); // 'JP' or 'KR'
+
+  // kpi_daily 필터: 국가 + 날짜 범위
+  const filtered = (json.kpi_daily || []).filter(r =>
+    r.country === country &&
+    r.std_dt >= salesStart && r.std_dt <= salesEnd
+  );
+
+  // spin_contents별 집계
+  const productMap = {};
+  for (const r of filtered) {
+    const key = r.spin_contents;
+    if (!productMap[key]) {
+      productMap[key] = {
+        spin_contents: key,
+        launch_spin_date: r.launch_spin_date,
+        duration: r.duration,
+        ucTotal: 0,
+        userTotal: 0,
+      };
+    }
+    productMap[key].ucTotal   += r.total_amount;
+    productMap[key].userTotal += r.total_user;
+    // launch_spin_date는 가장 이른 날짜 사용
+    if (r.launch_spin_date && r.launch_spin_date < productMap[key].launch_spin_date) {
+      productMap[key].launch_spin_date = r.launch_spin_date;
+      productMap[key].duration = r.duration;
+    }
+  }
+
+  // 날짜 + duration → 종료일
+  const addDays = (dateStr, days) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + (days || 1) - 1);
+    return d.toISOString().slice(0, 10);
+  };
+
+  // COLLABS 이름 매칭 (launch_spin_date가 콜라브 기간과 겹치면 이름 사용)
+  const findCollabName = (launchDate, dur) => {
+    if (!launchDate) return null;
+    const endDate = addDays(launchDate, dur);
+    const match = COLLABS.find(c =>
+      c.type === 'spin' && c.start <= endDate && c.end >= launchDate
+    );
+    return match ? match.name : null;
+  };
+
+  // 정렬 + 상위 15개 변환
+  const sorted = Object.values(productMap).sort((a, b) => b.ucTotal - a.ucTotal);
+  const totalUc = sorted.reduce((s, r) => s + r.ucTotal, 0);
+
+  salesData = sorted.slice(0, 15).map((r, i) => {
+    const collabName = findCollabName(r.launch_spin_date, r.duration);
+    const name = collabName || `#${r.spin_contents}`;
+    return {
+      rank:          i + 1,
+      name,
+      spin_contents: r.spin_contents,
+      ucTotal:       r.ucTotal,
+      usdTotal:      r.ucTotal / SALES_EX_RATE,
+      shareRate:     totalUc > 0 ? (r.ucTotal / totalUc * 100) : 0,
+      saleStart:     r.launch_spin_date || '',
+      saleEnd:       addDays(r.launch_spin_date, r.duration),
+      userTotal:     r.userTotal,
+    };
+  });
   render();
 }
 
@@ -2655,14 +2732,18 @@ function renderSalesPage() {
     <button class="sales-fetch-btn" onclick="salesFetch()">${t('salesFetchBtn')}</button>
   </div>`;
 
-  // 가상 데이터 알림
-  const mockNotice = `<div class="sales-mock-notice">${t('salesMockNotice')}</div>`;
+  // 로딩 중
+  if (salesLoading) {
+    return `<div class="sales-page">
+      ${filterBar}
+      <div class="sales-empty" style="color:#9ca3af;">⏳ ${lang==='ja'?'読み込み中...':'로딩 중...'}</div>
+    </div>`;
+  }
 
   // 미조회 상태
   if (!salesData) {
     return `<div class="sales-page">
       ${filterBar}
-      ${mockNotice}
       <div class="sales-empty">📋 ${t('salesEmpty')}</div>
     </div>`;
   }
@@ -2671,7 +2752,6 @@ function renderSalesPage() {
   if (salesData.length === 0) {
     return `<div class="sales-page">
       ${filterBar}
-      ${mockNotice}
       <div class="sales-empty">😶 ${t('salesNoData')}</div>
     </div>`;
   }
@@ -2695,6 +2775,7 @@ function renderSalesPage() {
       <td style="padding:10px 12px;vertical-align:middle;">${renderSalesImgCell(hash)}</td>
       <td class="sales-uc-val" style="vertical-align:middle;">${fmtNum(r.ucTotal)} UC</td>
       <td class="sales-usd-val" style="vertical-align:middle;">${fmtUsd(r.usdTotal)}</td>
+      <td style="vertical-align:middle;text-align:right;color:#374151;">${fmtNum(r.userTotal || 0)}</td>
       <td style="vertical-align:middle;">
         <div class="sales-share-bar-wrap">
           <div class="sales-share-bar" style="width:${barW}px;"></div>
@@ -2706,13 +2787,17 @@ function renderSalesPage() {
     </tr>`;
   }).join('');
 
+  const updatedInfo = salesUpdatedAt
+    ? `<span style="font-size:10px;color:#9ca3af;margin-left:8px;">🔄 ${salesUpdatedAt}</span>`
+    : '';
+
   return `<div class="sales-page">
     ${filterBar}
-    ${mockNotice}
     <div class="sales-meta-row">
       <span class="sales-meta-total">
         ${t('salesTotalUc')}: <span style="color:#2563eb;">${fmtNum(totalUc)} UC</span>
         &nbsp;≈&nbsp;<span style="color:#065f46;">${fmtUsd(totalUc / SALES_EX_RATE)}</span>
+        ${updatedInfo}
       </span>
       <span class="sales-meta-exrate">${t('salesExRate')}</span>
     </div>
@@ -2725,6 +2810,7 @@ function renderSalesPage() {
             <th>${t('salesColImg')}</th>
             <th>${t('salesColUc')}</th>
             <th>${t('salesColUsd')}</th>
+            <th style="text-align:right;">${lang==='ja'?'ユーザー数':'유저수'}</th>
             <th>${t('salesColShare')}</th>
             <th>${t('salesColStart')}</th>
             <th>${t('salesColEnd')}</th>
