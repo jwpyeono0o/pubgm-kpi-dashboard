@@ -430,6 +430,31 @@
     .sales-uc-val  { font-weight:700; color:#1e2535; }
     .sales-usd-val { font-weight:700; color:#065f46; }
     .sales-empty { text-align:center; padding:48px 20px; color:#9ca3af; font-size:13px; }
+
+    /* 배너 업로드 존 */
+    .sales-banner-outer { margin-bottom:18px; }
+    .sales-banner-zone {
+      width:100%; max-width:600px;
+      aspect-ratio:456/210;
+      border:2px dashed #d1d9e6; border-radius:12px;
+      background:#f8faff;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      cursor:pointer; transition:all .2s; position:relative; overflow:hidden;
+    }
+    .sales-banner-zone.dragover  { border-color:#2563eb; background:#eff6ff; }
+    .sales-banner-zone.has-image { border:none; cursor:default; }
+    .sales-banner-zone img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:10px; }
+    .sales-banner-hint { font-size:12px; font-weight:700; color:#6b7280; margin-top:8px; pointer-events:none; }
+    .sales-banner-sub  { font-size:10px; color:#9ca3af; margin-top:4px; pointer-events:none; }
+    .sales-banner-replace {
+      position:absolute; bottom:10px; right:10px;
+      background:rgba(0,0,0,0.52); color:#fff; border:none;
+      padding:5px 12px; border-radius:6px; font-size:11px; font-weight:700;
+      cursor:pointer; opacity:0; transition:opacity .2s;
+    }
+    .sales-banner-zone.has-image:hover .sales-banner-replace { opacity:1; }
+    .sales-banner-uploading { font-size:12px; color:#6b7280; animation:pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
     /* result table multi-period */
     .comp-table th.th-base { background:#eff6ff; color:#2563eb; }
     .comp-table th.th-b { background:#f8fafc; color:#475569; }
@@ -852,6 +877,12 @@ const I18N = {
     salesNoData:'해당 기간에 데이터가 없습니다.',
     salesExRate:'환율 기준: 1 USD = 124.85 UC',
     salesTotalUc:'기간 내 Total UC',
+    salesBannerDrop:'이미지를 드래그하거나 클릭하여 업로드',
+    salesBannerSub:'456 × 210 비율 권장',
+    salesBannerReplace:'🔄 교체',
+    salesBannerUploading:'업로드 중...',
+    salesBannerOk:'✅ 이미지 저장 완료',
+    salesBannerFail:'❌ 업로드 실패',
   },
   ja: {
     title:'KRAFTON KPI ダッシュボード',
@@ -955,6 +986,12 @@ const I18N = {
     salesNoData:'該当期間にデータがありません。',
     salesExRate:'為替レート基準: 1 USD = 124.85 UC',
     salesTotalUc:'期間内 Total UC',
+    salesBannerDrop:'画像をドラッグまたはクリックしてアップロード',
+    salesBannerSub:'456 × 210 比率推奨',
+    salesBannerReplace:'🔄 変更',
+    salesBannerUploading:'アップロード中...',
+    salesBannerOk:'✅ 画像保存完了',
+    salesBannerFail:'❌ アップロード失敗',
   }
 };
 
@@ -1478,6 +1515,8 @@ let COLLABS = [];
 let salesStart = '';
 let salesEnd   = '';
 let salesData  = null;  // null = 미조회, [] = 결과 없음, [...] = 결과
+let salesBannerUrl       = null;   // null=미로드, ''=없음, url=있음
+let salesBannerUploading = false;
 let collabMgmtOpen = false;
 let editingCollabId = null;
 
@@ -1964,6 +2003,121 @@ function renderComparePage() {
 // 1 USD = 124.85 UC (실측 기준)
 const SALES_EX_RATE = 124.85;
 
+const SALES_BANNER_PATH = 'data/sales_banner.jpg';
+
+// 배너 이미지 GitHub에서 로드
+async function loadSalesBanner() {
+  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/${SALES_BANNER_PATH}?t=${Date.now()}`;
+  try {
+    const r = await fetch(url, {method:'HEAD'});
+    salesBannerUrl = r.ok ? url : '';
+  } catch(e) { salesBannerUrl = ''; }
+  if (mainTab === 'sales') render();
+}
+
+// 이미지 → canvas로 JPEG 변환 후 GitHub 업로드
+async function uploadSalesBanner(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  salesBannerUploading = true;
+  if (mainTab === 'sales') render();
+  try {
+    // canvas로 리사이즈 + JPEG 변환 (max 912×421 @2x)
+    const bitmap = await createImageBitmap(file);
+    const maxW = 912, maxH = 421;
+    let w = bitmap.width, h = bitmap.height;
+    if (w > maxW || h > maxH) {
+      const ratio = Math.min(maxW/w, maxH/h);
+      w = Math.round(w * ratio); h = Math.round(h * ratio);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    const base64  = dataUrl.split(',')[1];
+
+    // GitHub API 업로드
+    const headers = { 'Authorization': `token ${GH_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' };
+    const apiUrl  = `https://api.github.com/repos/${GH_REPO}/contents/${SALES_BANNER_PATH}`;
+    const existing = await fetch(apiUrl, {headers}).then(r => r.ok ? r.json() : {});
+    const sha = existing.sha || '';
+    const body = { message: '[Dashboard] 판매 실적 배너 업데이트', content: base64 };
+    if (sha) body.sha = sha;
+    const res = await fetch(apiUrl, {method:'PUT', headers:{...headers,'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    if (res.ok) {
+      salesBannerUrl = `https://raw.githubusercontent.com/${GH_REPO}/main/${SALES_BANNER_PATH}?t=${Date.now()}`;
+    } else {
+      alert(t('salesBannerFail'));
+    }
+  } catch(e) {
+    alert(t('salesBannerFail') + ': ' + e.message);
+  }
+  salesBannerUploading = false;
+  if (mainTab === 'sales') render();
+}
+
+function handleSalesBannerDrop(e) {
+  e.preventDefault();
+  document.getElementById('salesBannerZone')?.classList.remove('dragover');
+  const file = e.dataTransfer?.files?.[0];
+  if (file) uploadSalesBanner(file);
+}
+
+function renderSalesBanner() {
+  if (salesBannerUploading) {
+    return `<div class="sales-banner-outer">
+      <div class="sales-banner-zone" style="cursor:default;">
+        <span style="font-size:28px;">🖼️</span>
+        <span class="sales-banner-uploading" style="margin-top:8px;">${t('salesBannerUploading')}</span>
+      </div>
+    </div>`;
+  }
+  if (salesBannerUrl === null) {
+    // 아직 로드 안됨 — 빈 존 표시
+    return `<div class="sales-banner-outer">
+      <div class="sales-banner-zone" id="salesBannerZone"
+        ondragover="event.preventDefault();document.getElementById('salesBannerZone').classList.add('dragover')"
+        ondragleave="document.getElementById('salesBannerZone').classList.remove('dragover')"
+        ondrop="handleSalesBannerDrop(event)"
+        onclick="document.getElementById('salesBannerInput').click()">
+        <input type="file" id="salesBannerInput" accept="image/*" style="display:none"
+          onchange="uploadSalesBanner(this.files[0])">
+        <span style="font-size:32px;">🖼️</span>
+        <span class="sales-banner-hint">${t('salesBannerDrop')}</span>
+        <span class="sales-banner-sub">${t('salesBannerSub')}</span>
+      </div>
+    </div>`;
+  }
+  if (salesBannerUrl === '') {
+    // 이미지 없음 — 업로드 유도
+    return `<div class="sales-banner-outer">
+      <div class="sales-banner-zone" id="salesBannerZone"
+        ondragover="event.preventDefault();document.getElementById('salesBannerZone').classList.add('dragover')"
+        ondragleave="document.getElementById('salesBannerZone').classList.remove('dragover')"
+        ondrop="handleSalesBannerDrop(event)"
+        onclick="document.getElementById('salesBannerInput').click()">
+        <input type="file" id="salesBannerInput" accept="image/*" style="display:none"
+          onchange="uploadSalesBanner(this.files[0])">
+        <span style="font-size:32px;">🖼️</span>
+        <span class="sales-banner-hint">${t('salesBannerDrop')}</span>
+        <span class="sales-banner-sub">${t('salesBannerSub')}</span>
+      </div>
+    </div>`;
+  }
+  // 이미지 있음
+  return `<div class="sales-banner-outer">
+    <div class="sales-banner-zone has-image" id="salesBannerZone"
+      ondragover="event.preventDefault();document.getElementById('salesBannerZone').classList.add('dragover')"
+      ondragleave="document.getElementById('salesBannerZone').classList.remove('dragover')"
+      ondrop="handleSalesBannerDrop(event)">
+      <input type="file" id="salesBannerInput" accept="image/*" style="display:none"
+        onchange="uploadSalesBanner(this.files[0])">
+      <img src="${salesBannerUrl}" alt="sales banner"
+        onerror="salesBannerUrl='';render()">
+      <button class="sales-banner-replace" onclick="document.getElementById('salesBannerInput').click()">${t('salesBannerReplace')}</button>
+    </div>
+  </div>`;
+}
+
 // ── 가상 데이터 (Databricks 연동 전 임시) ──
 const SALES_MOCK = {
   jp: [
@@ -2036,9 +2190,12 @@ function renderSalesPage() {
   // 가상 데이터 알림
   const mockNotice = `<div class="sales-mock-notice">${t('salesMockNotice')}</div>`;
 
+  const bannerHtml = renderSalesBanner();
+
   // 미조회 상태
   if (!salesData) {
     return `<div class="sales-page">
+      ${bannerHtml}
       ${filterBar}
       ${mockNotice}
       <div class="sales-empty">📋 ${t('salesEmpty')}</div>
@@ -2048,6 +2205,7 @@ function renderSalesPage() {
   // 결과 없음
   if (salesData.length === 0) {
     return `<div class="sales-page">
+      ${bannerHtml}
       ${filterBar}
       ${mockNotice}
       <div class="sales-empty">😶 ${t('salesNoData')}</div>
@@ -2080,6 +2238,7 @@ function renderSalesPage() {
   }).join('');
 
   return `<div class="sales-page">
+    ${bannerHtml}
     ${filterBar}
     ${mockNotice}
     <div class="sales-meta-row">
@@ -2530,6 +2689,8 @@ function render() {
   </div>`;
 
   if (mainTab === 'sales') {
+    // 배너 아직 로드 안됐으면 비동기로 로드
+    if (salesBannerUrl === null && !salesBannerUploading) loadSalesBanner();
     document.getElementById('dash').innerHTML = mainTabsHtml + `
     <div class="main" style="padding-top:16px;">
       <div class="section-head"><span class="section-title">${t('salesTitle')}</span></div>
