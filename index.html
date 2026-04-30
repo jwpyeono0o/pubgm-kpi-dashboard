@@ -3828,6 +3828,44 @@ async function autoLoad() {
   salesStart = fmt(ago30); salesEnd = fmt(today);
 })();
 
+// ── 날짜 입력 전역 검증 ──────────────────────────────────────────────────────
+// 모든 type="date" 입력에 적용:
+//   · 연도 최대 4자리 (max="2099-12-31" → 브라우저가 4자리 초과 입력 거부)
+//   · 일/월 반드시 2자리 (change 시 강제 패딩)
+(function setupDateValidation() {
+  const MAX_DATE = '2099-12-31';
+  const MIN_DATE = '2000-01-01';
+
+  function applyConstraints(el) {
+    if (el.dataset.dvApplied) return;
+    el.dataset.dvApplied = '1';
+    if (!el.max) el.max = MAX_DATE;
+    if (!el.min) el.min = MIN_DATE;
+  }
+
+  // 이미 존재하는 입력에 적용
+  document.querySelectorAll('input[type="date"]').forEach(applyConstraints);
+
+  // 동적으로 생성되는 입력도 처리
+  new MutationObserver(() => {
+    document.querySelectorAll('input[type="date"]:not([data-dv-applied])').forEach(applyConstraints);
+  }).observe(document.body, {childList: true, subtree: true});
+
+  // change 시 연도 4자리 초과 / 일·월 1자리 강제 보정
+  document.addEventListener('change', function(e) {
+    const el = e.target;
+    if (el.type !== 'date' || !el.value) return;
+    const parts = el.value.split('-');
+    if (parts.length !== 3) return;
+    let [y, m, d] = parts;
+    let changed = false;
+    if (y.length > 4) { y = y.slice(0, 4); changed = true; }  // 연도 4자리로 자르기
+    if (m.length < 2) { m = m.padStart(2, '0'); changed = true; }  // 월 2자리 패딩
+    if (d.length < 2) { d = d.padStart(2, '0'); changed = true; }  // 일 2자리 패딩
+    if (changed) el.value = `${y}-${m}-${d}`;
+  }, true);
+})();
+
 applyLang();
 salesFetch();   // 판매 실적 기본 조회
 loadCollabs().then(() => loadDatabricks().then(() => {
