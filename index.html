@@ -1577,7 +1577,8 @@ function buildKpiTable(data, cols, reg, ranges, badgeCls, badgeText, title) {
     const prev=getRows(data,...r.prev);
     tb+=`<tr><td class="kpi-t-rowhead">${pName[period]}<span class="kpi-t-period">${desc(r)}</span></td>`;
     cols.forEach((c,i)=>{
-      const cv=agg(curr,c.colIdx), pv=agg(prev,c.colIdx);
+      const aggFn = c.aggType==='sum' ? aggSum : agg;
+      const cv=aggFn(curr,c.colIdx), pv=aggFn(prev,c.colIdx);
       const chg=pctChg(cv,pv);
       const cls=chg==null?'kpi-nil':chg>=0?'kpi-up':'kpi-dn';
       const arrow=chg==null?'—':chg>=0?'▲ +':'▼ ';
@@ -1606,17 +1607,17 @@ function renderKpiTables(hasTrf, hasRev, reg, ranges) {
   const unit=reg==='kr'?'₩':'¥';
   let html='';
   if (hasTrf) html+=buildKpiTable(trfData,[
-    {label:'DAU',   fmt:fmtInt, colIdx:TC_r.dau},
-    {label:'NRU',   fmt:fmtInt, colIdx:TC_r.nru},
-    {label:'Return',fmt:fmtInt, colIdx:TC_r.ret},
-    {label:'PCU',   fmt:fmtInt, colIdx:TC_r.pcu},
+    {label:'DAU',   fmt:fmtInt, colIdx:TC_r.dau, aggType:'avg'},
+    {label:'NRU',   fmt:fmtInt, colIdx:TC_r.nru, aggType:'sum'},
+    {label:'Return',fmt:fmtInt, colIdx:TC_r.ret, aggType:'sum'},
+    {label:'PCU',   fmt:fmtInt, colIdx:TC_r.pcu, aggType:'avg'},
   ],reg,ranges,'trf','T-LOG',t('trfSection'));
   if (hasRev) html+=buildKpiTable(revData,[
-    {label:`Revenue(${unit})`,fmt:fmtInt, colIdx:RC_r.rev},
-    {label:'PU',              fmt:fmtInt, colIdx:RC_r.pu},
-    {label:'PUR',             fmt:fmtPct, colIdx:RC_r.pur},
-    {label:'ARPU',            fmt:fmtF2,  colIdx:RC_r.arpu},
-    {label:'ARPPU',           fmt:fmtF2,  colIdx:RC_r.arppu},
+    {label:`Revenue(${unit})`,fmt:fmtInt, colIdx:RC_r.rev,   aggType:'sum'},
+    {label:'PU',              fmt:fmtInt, colIdx:RC_r.pu,    aggType:'sum'},
+    {label:'PUR',             fmt:fmtPct, colIdx:RC_r.pur,   aggType:'avg'},
+    {label:'ARPU',            fmt:fmtF2,  colIdx:RC_r.arpu,  aggType:'avg'},
+    {label:'ARPPU',           fmt:fmtF2,  colIdx:RC_r.arppu, aggType:'avg'},
   ],reg,ranges,'rev','BILLING',t('revSection'));
   return html;
 }
@@ -3173,42 +3174,36 @@ function renderKpiSummary(hasTrf, hasRev) {
   return renderKpiTables(hasTrf, hasRev, reg, ranges);
 }
 
-// ── Render: ③ 상세 데이터 — 추이 차트 ──
-function renderDetailCharts(hasTrf, hasRev) {
-  const reg = region;
+// ── Render: 차트 기간 컨트롤 (공유) ──
+function renderChartRangeCtrl(hasTrf, hasRev) {
   const rMinD = hasTrf ? isoDate(trfData[0][0]) : (hasRev ? isoDate(revData[0][0]) : '');
   const rMaxD = hasTrf ? isoDate(trfData[trfData.length-1][0]) : (hasRev ? isoDate(revData[revData.length-1][0]) : '');
-  let html = `<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">${renderPeriodCtrl('range', rangeDays, rangeStart, rangeEnd, rMinD, rMaxD)}</div>`;
-  if (hasTrf) {
-    html += `
-    <div class="section">
-      <div class="section-head">
-        <div class="section-title">${t('trfSection')}</div>
-        <span class="badge badge-trf">T-LOG · ${reg.toUpperCase()}</span>
-      </div>
-      <div class="chart-row">
-        <div class="chart-card"><div class="chart-label">${t('chartDau')}</div><div class="chart-wrap"><canvas id="cDau"></canvas></div></div>
-        <div class="chart-card"><div class="chart-label">${t('chartNruRet')}</div><div class="chart-wrap"><canvas id="cNruRet"></canvas></div></div>
-      </div>
-    </div>`;
-  }
-  if (hasTrf && hasRev) html += '<div class="inner-gap"></div>';
-  if (hasRev) {
-    const unit2 = reg==='kr'?'₩':'¥';
-    html += `
-    <div class="section">
-      <div class="section-head">
-        <div class="section-title">${t('revSection')}</div>
-        <span class="badge badge-rev">BILLING · ${reg.toUpperCase()}</span>
-      </div>
-      <div class="chart-row-3">
-        <div class="chart-card"><div class="chart-label">Revenue(${unit2}) ${lang==='ja'?'推移':'추이'}</div><div class="chart-wrap"><canvas id="cRev"></canvas></div></div>
-        <div class="chart-card"><div class="chart-label">${t('chartPuPur')}</div><div class="chart-wrap"><canvas id="cPuPur"></canvas></div></div>
-        <div class="chart-card"><div class="chart-label">${t('chartArppuArpu')}</div><div class="chart-wrap"><canvas id="cArppuArpu"></canvas></div></div>
-      </div>
-    </div>`;
-  }
-  return html;
+  return `<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">${renderPeriodCtrl('range', rangeDays, rangeStart, rangeEnd, rMinD, rMaxD)}</div>`;
+}
+
+// ── Render: 트래픽 KPI 차트 ──
+function renderTrfDetailCharts(hasTrf, hasRev) {
+  if (!hasTrf) return '';
+  const reg = region;
+  return `
+  ${renderChartRangeCtrl(hasTrf, hasRev)}
+  <div class="chart-row">
+    <div class="chart-card"><div class="chart-label">${t('chartDau')}</div><div class="chart-wrap"><canvas id="cDau"></canvas></div></div>
+    <div class="chart-card"><div class="chart-label">${t('chartNruRet')}</div><div class="chart-wrap"><canvas id="cNruRet"></canvas></div></div>
+  </div>`;
+}
+
+// ── Render: 레비뉴 KPI 차트 ──
+function renderRevDetailCharts(hasRev) {
+  if (!hasRev) return '';
+  const reg = region;
+  const unit2 = reg==='kr'?'₩':'¥';
+  return `
+  <div class="chart-row-3">
+    <div class="chart-card"><div class="chart-label">Revenue(${unit2}) ${lang==='ja'?'推移':'추이'}</div><div class="chart-wrap"><canvas id="cRev"></canvas></div></div>
+    <div class="chart-card"><div class="chart-label">${t('chartPuPur')}</div><div class="chart-wrap"><canvas id="cPuPur"></canvas></div></div>
+    <div class="chart-card"><div class="chart-label">${t('chartArppuArpu')}</div><div class="chart-wrap"><canvas id="cArppuArpu"></canvas></div></div>
+  </div>`;
 }
 
 // ── Step1 vs Step2 Classification Section ──────────────────
@@ -3418,43 +3413,66 @@ function render() {
 
   let html = '';
 
-  // ① 오버뷰 차트
+  // ① 오버뷰 차트 + 성과 요약
+  const ovMinD = hasTrf ? isoDate(trfData[0][0]) : (hasRev ? isoDate(revData[0][0]) : '');
+  const ovMaxD = hasTrf ? isoDate(trfData[trfData.length-1][0]) : (hasRev ? isoDate(revData[revData.length-1][0]) : '');
   html += `
   <div class="dash-section">
     <div class="dash-section-header">
       <span class="section-num">①</span>
       <span class="dash-section-title">${t('sectionOverview')}</span>
-      ${(()=>{
-        const ovMinD = hasTrf ? isoDate(trfData[0][0]) : (hasRev ? isoDate(revData[0][0]) : '');
-        const ovMaxD = hasTrf ? isoDate(trfData[trfData.length-1][0]) : (hasRev ? isoDate(revData[revData.length-1][0]) : '');
-        return renderPeriodCtrl('overview', overviewDays, overviewStart, overviewEnd, ovMinD, ovMaxD);
-      })()}
+      ${renderPeriodCtrl('overview', overviewDays, overviewStart, overviewEnd, ovMinD, ovMaxD)}
     </div>
     ${renderOverviewChart(hasTrf, hasRev)}
-    ${renderClassificationSection()}
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <span style="font-size:12px;font-weight:800;color:#374151;">${t('sectionSummary')}</span>
+        ${renderBaseDateCtrl(hasTrf, hasRev)}
+      </div>
+      ${renderKpiSummary(hasTrf, hasRev)}
+    </div>
   </div>`;
 
-  // ② 성과 요약
+  // ② 상세 데이터 (일/주/월/연 집계 테이블)
   html += `
   <div class="dash-section">
     <div class="dash-section-header">
       <span class="section-num">②</span>
-      <span class="dash-section-title">${t('sectionSummary')}</span>
-      ${renderBaseDateCtrl(hasTrf, hasRev)}
-    </div>
-    ${renderKpiSummary(hasTrf, hasRev)}
-  </div>`;
-
-  // ③ 상세 데이터
-  html += `
-  <div class="dash-section">
-    <div class="dash-section-header">
-      <span class="section-num">③</span>
       <span class="dash-section-title">${t('sectionDetail')}</span>
     </div>
     ${renderPeriodSection(hasTrf, hasRev)}
-    <div class="block-divider" style="margin:20px 0 22px;"></div>
-    ${renderDetailCharts(hasTrf, hasRev)}
+  </div>`;
+
+  // ③ 트래픽 KPI
+  if (hasTrf) html += `
+  <div class="dash-section">
+    <div class="dash-section-header">
+      <span class="section-num">③</span>
+      <span class="dash-section-title">${t('trfSection')}</span>
+      <span class="badge badge-trf" style="margin-left:4px;">T-LOG · ${region.toUpperCase()}</span>
+    </div>
+    ${renderTrfDetailCharts(hasTrf, hasRev)}
+  </div>`;
+
+  // ④ Step1/2 세분화 분석
+  html += `
+  <div class="dash-section">
+    <div class="dash-section-header">
+      <span class="section-num">④</span>
+      <span class="dash-section-title">${t('stepTitle')||'Step1/2 세분화 분석'}</span>
+    </div>
+    ${renderClassificationSection()}
+  </div>`;
+
+  // ⑤ Revenue KPI
+  if (hasRev) html += `
+  <div class="dash-section">
+    <div class="dash-section-header">
+      <span class="section-num">⑤</span>
+      <span class="dash-section-title">${t('revSection')}</span>
+      <span class="badge badge-rev" style="margin-left:4px;">BILLING · ${region.toUpperCase()}</span>
+    </div>
+    ${renderRevDetailCharts(hasRev)}
   </div>`;
 
   document.getElementById('dash').innerHTML = html;
