@@ -663,24 +663,26 @@
     .step-ratio-bar { display:inline-block; height:6px; background:#ea580c; border-radius:3px; vertical-align:middle; margin-left:6px; opacity:.6; }
 
     /* ── DASHBOARD SECTIONS ── */
-    .dash-section { margin-bottom:32px; }
+    .dash-section { margin-bottom:36px; }
     .dash-section-header {
-      display:flex; align-items:center; gap:10px;
-      margin-bottom:20px; padding:11px 16px;
-      background:linear-gradient(90deg,#eff6ff 0%,#f8faff 100%);
-      border-radius:10px;
-      border-left:4px solid #2563eb;
+      display:flex; align-items:center; gap:12px;
+      margin-bottom:20px; padding:0;
+    }
+    .dash-section-header::after {
+      content:''; flex:1; height:2px;
+      background:linear-gradient(to right,#dbeafe,transparent);
+      border-radius:1px;
     }
     .dash-section-title {
-      font-size:14px; font-weight:800; color:#1e2535;
-      letter-spacing:0.2px;
+      font-size:15px; font-weight:800; color:#111827;
+      letter-spacing:-0.2px; white-space:nowrap;
     }
     .section-num {
       display:inline-flex; align-items:center; justify-content:center;
-      width:26px; height:26px; border-radius:50%;
+      width:28px; height:28px; border-radius:8px;
       background:#2563eb; color:#fff;
-      font-size:12px; font-weight:800; flex-shrink:0;
-      line-height:1; box-shadow:0 2px 6px rgba(37,99,235,0.35);
+      font-size:13px; font-weight:800; flex-shrink:0;
+      line-height:1; box-shadow:0 2px 8px rgba(37,99,235,0.4);
     }
 
     /* ── 공통 컨트롤 바 (조회 기간 / 기준일) ── */
