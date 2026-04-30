@@ -2642,24 +2642,36 @@ async function salesFetch() {
 
   const country = region.toUpperCase(); // 'JP' or 'KR'
 
-  // daily 필터: 국가 + 날짜 범위
+  // UC_Change_reason* 친숙한 이름 매핑
+  const REASON_NAMES = {
+    'UC_Change_reason121':   lang==='ja' ? 'コラボスピン (121)'   : '콜라브 스핀 (121)',
+    'UC_Change_reason3004':  'X-suit Spin (3004)',
+    'UC_Change_reason3002':  'Weapon Spin (3002)',
+    'UC_Change_reason3006':  'Fools Blessing (3006)',
+    'UC_Change_reason3023':  'Mythic Forge (3023)',
+    'UC_Change_reason3008':  'Spin 3008',
+    'UC_Change_reason3034':  'Spin 3034',
+    'UC_Change_reason111':   'Reason 111',
+    'UC_Change_reason110':   'Reason 110',
+    'UC_Change_reason204':   'Reason 204',
+    'UC_Change_reason224':   'Reason 224',
+    'UC_Change_reason245':   'Reason 245',
+    'UC_Change_reason16820': 'Reason 16820',
+  };
+  const friendlyName = (product) => REASON_NAMES[product] || product;
+
+  // [1] uc_use daily 필터: 국가 + 날짜 범위
   const filtered = (json.daily || []).filter(r =>
     r.country === country &&
     r.std_dt >= salesStart && r.std_dt <= salesEnd
   );
 
-  // product별 집계
+  // product별 집계 (UC_Change_reason* 포함 전체)
   const productMap = {};
   for (const r of filtered) {
     const key = r.product;
     if (!productMap[key]) {
-      productMap[key] = {
-        product:   key,
-        ucTotal:   0,
-        userTotal: 0,
-        firstDate: r.std_dt,
-        lastDate:  r.std_dt,
-      };
+      productMap[key] = { product:key, ucTotal:0, userTotal:0, firstDate:r.std_dt, lastDate:r.std_dt };
     }
     productMap[key].ucTotal   += r.total_amount;
     productMap[key].userTotal += r.total_user;
@@ -2667,13 +2679,23 @@ async function salesFetch() {
     if (r.std_dt > productMap[key].lastDate)  productMap[key].lastDate  = r.std_dt;
   }
 
-  // 정렬 + 상위 15개 변환
+  // [2] UC_Change_reason121 값 교체: lucky_spin_stat (5개 제외 합산)
+  const r121Replace = (json.reason121_replace || [])
+    .filter(r => r.country === country && r.std_dt >= salesStart && r.std_dt <= salesEnd)
+    .reduce((s, r) => ({uc: s.uc + r.collab_uc, user: s.user + r.collab_user}), {uc:0, user:0});
+
+  if (r121Replace.uc > 0 && productMap['UC_Change_reason121']) {
+    productMap['UC_Change_reason121'].ucTotal   = r121Replace.uc;
+    productMap['UC_Change_reason121'].userTotal = r121Replace.user;
+  }
+
+  // 정렬 + 상위 15개
   const sorted = Object.values(productMap).sort((a, b) => b.ucTotal - a.ucTotal);
   const totalUc = sorted.reduce((s, r) => s + r.ucTotal, 0);
 
   salesData = sorted.slice(0, 15).map((r, i) => ({
     rank:      i + 1,
-    name:      r.product,
+    name:      friendlyName(r.product),
     ucTotal:   r.ucTotal,
     usdTotal:  r.ucTotal / SALES_EX_RATE,
     shareRate: totalUc > 0 ? (r.ucTotal / totalUc * 100) : 0,
