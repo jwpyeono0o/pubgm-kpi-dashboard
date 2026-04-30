@@ -2326,9 +2326,13 @@ function renderRetPage() {
   ).filter(v => v != null);
   const minV = Math.min(...allVals), maxV = Math.max(...allVals);
 
+  const showCountry = retCountry === 'ALL';
+  const dateColSpan = showCountry ? '' : '';
+
   const thead = `<thead>
     <tr>
       <th rowspan="2" style="position:sticky;top:0;z-index:3;background:#1e2535;border-radius:10px 0 0 0;">${t('retTableDate')}</th>
+      ${showCountry ? `<th rowspan="2" style="position:sticky;top:0;z-index:3;background:#1e2535;">국가</th>` : ''}
       ${showTypes.map(tp => `<th colspan="${dList.length}" class="${thGroup[tp]}" style="position:sticky;top:0;z-index:3;">${typeLabel[tp]}</th>`).join('')}
     </tr>
     <tr>
@@ -2343,14 +2347,23 @@ function renderRetPage() {
         return `<td class="${hmClass(v, minV, maxV)}">${v != null ? v.toFixed(2)+'%' : '—'}</td>`;
       })
     ).join('');
-    return `<tr><td class="td-date" style="position:sticky;left:0;background:#fff;z-index:1;">${r.date}</td>${cells}</tr>`;
+    const countryBadge = r.country === 'JP'
+      ? `<span style="font-size:10px;font-weight:700;color:#2563eb;background:#eff6ff;padding:1px 5px;border-radius:4px;">JP</span>`
+      : `<span style="font-size:10px;font-weight:700;color:#dc2626;background:#fef2f2;padding:1px 5px;border-radius:4px;">KR</span>`;
+    return `<tr>
+      <td class="td-date" style="position:sticky;left:0;background:#fff;z-index:1;">${r.date}</td>
+      ${showCountry ? `<td style="text-align:center;white-space:nowrap;">${countryBadge}</td>` : ''}
+      ${cells}
+    </tr>`;
   }).join('');
 
   const scrollStyle = retData.length > 30 ? 'max-height:540px;overflow-y:auto;' : '';
+  const rowCount = retData.length;
+  const dateCount = new Set(retData.map(r=>r.date)).size;
 
   const tableHtml = `
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-    <span style="font-size:11px;color:#6b7280;">${retData.length}일 데이터</span>
+    <span style="font-size:11px;color:#6b7280;">${dateCount}일 · ${rowCount}행</span>
     <button class="ret-download-btn" onclick="downloadRetCsv()">⬇ CSV 다운로드</button>
   </div>
   <div class="ret-table-wrap" style="${scrollStyle}">
@@ -2384,20 +2397,25 @@ function renderRetPage() {
   const cohortHtml = `
   <div class="ret-cohort-wrap">
     <div class="ret-cohort-title">${t('retCohortTitle')}${updatedAt}</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
       ${cohortDnList.map((dn,i) => {
         const col = cohortCardCol[i];
-        return `<div style="background:#fff;border:1px solid #e3e8f0;border-radius:10px;padding:14px 16px;border-top:3px solid ${col};">
-          <div style="font-size:13px;font-weight:700;color:${col};margin-bottom:10px;">${dn}</div>
+        const maxVal = Math.max(...cohortYears.map(yr => cohortByYear[yr]?.[dn] || 0), 1);
+        return `<div style="background:#fff;border:1px solid #e3e8f0;border-radius:10px;padding:16px 18px;border-top:3px solid ${col};">
+          <div style="font-size:13px;font-weight:700;color:${col};margin-bottom:14px;">${dn}</div>
           ${cohortYears.length
-            ? cohortYears.map(yr => {
-                const val = cohortByYear[yr]?.[dn];
-                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #f3f4f6;">
-                  <span style="font-size:11px;color:#6b7280;">${yr}</span>
-                  <span style="font-size:12px;font-weight:600;color:#1e2535;">${val!=null?val.toFixed(2)+'%':'—'}</span>
-                </div>`;
-              }).join('')
-            : `<div style="font-size:11px;color:#9ca3af;text-align:center;padding:8px 0;">조회 후 표시</div>`
+            ? `<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+                ${cohortYears.map(yr => {
+                  const val = cohortByYear[yr]?.[dn];
+                  const barH = val != null ? Math.round(val / maxVal * 100) : 0;
+                  return `<div style="text-align:center;flex:1;min-width:40px;">
+                    <div style="font-size:11px;font-weight:700;color:${col};margin-bottom:4px;">${val!=null?val.toFixed(1)+'%':'—'}</div>
+                    <div style="width:100%;height:${Math.max(barH,3)}px;background:${col};border-radius:4px 4px 0 0;opacity:0.85;"></div>
+                    <div style="font-size:10px;color:#6b7280;margin-top:5px;border-top:1px solid #e3e8f0;padding-top:4px;">${yr}</div>
+                  </div>`;
+                }).join('')}
+              </div>`
+            : `<div style="font-size:11px;color:#9ca3af;text-align:center;padding:16px 0;">조회 후 표시</div>`
           }
         </div>`;
       }).join('')}
