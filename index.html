@@ -468,7 +468,8 @@
     .ret-table-wrap { overflow-x:auto; border-radius:10px; border:1px solid #e3e8f0; margin-bottom:20px; }
     table.ret-table { width:100%; border-collapse:collapse; font-size:11px; }
     table.ret-table thead th {
-      background:#475569; color:#fff; padding:7px 10px;
+      background:#475569; color:#fff; padding:0 10px;
+      height:30px; line-height:30px;
       font-size:10px; font-weight:700; white-space:nowrap; text-align:center;
     }
     table.ret-table thead th.th-group-exist  { background:#1e3a5f; }
@@ -2328,11 +2329,11 @@ function renderRetPage() {
 
   const thead = `<thead>
     <tr>
-      <th rowspan="2" style="position:sticky;top:0;z-index:3;background:#1e2535;border-radius:10px 0 0 0;">${t('retTableDate')}</th>
+      <th rowspan="2" style="position:sticky;top:0;z-index:4;background:#1e2535;border-radius:10px 0 0 0;vertical-align:middle;line-height:normal;padding:0 10px;">${t('retTableDate')}</th>
       ${showTypes.map(tp => `<th colspan="${dList.length}" class="${thGroup[tp]}" style="position:sticky;top:0;z-index:3;">${typeLabel[tp]}</th>`).join('')}
     </tr>
     <tr>
-      ${showTypes.flatMap(tp => dLabel.map(dl => `<th class="${thGroup[tp]}">${dl}</th>`)).join('')}
+      ${showTypes.flatMap(tp => dLabel.map(dl => `<th class="${thGroup[tp]}" style="position:sticky;top:30px;z-index:3;">${dl}</th>`)).join('')}
     </tr>
   </thead>`;
 
@@ -2400,9 +2401,10 @@ function renderRetPage() {
                 ${cohortYears.map(yr => {
                   const val = cohortByYear[yr]?.[dn];
                   const barH = val != null ? Math.round(val / maxVal * 100) : 0;
+                  const opacity = val != null ? (0.25 + (val / maxVal) * 0.75).toFixed(2) : '0.15';
                   return `<div style="text-align:center;flex:1;min-width:40px;">
-                    <div style="font-size:11px;font-weight:700;color:${col};margin-bottom:4px;">${val!=null?val.toFixed(1)+'%':'—'}</div>
-                    <div style="width:100%;height:${Math.max(barH,3)}px;background:${col};border-radius:4px 4px 0 0;opacity:0.85;"></div>
+                    <div style="font-size:11px;font-weight:700;color:${col};opacity:${opacity};margin-bottom:4px;">${val!=null?val.toFixed(1)+'%':'—'}</div>
+                    <div style="width:100%;height:${Math.max(barH,3)}px;background:${col};opacity:${opacity};border-radius:4px 4px 0 0;"></div>
                     <div style="font-size:10px;color:#6b7280;margin-top:5px;border-top:1px solid #e3e8f0;padding-top:4px;">${yr}</div>
                   </div>`;
                 }).join('')}
