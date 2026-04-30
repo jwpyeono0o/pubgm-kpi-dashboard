@@ -8,13 +8,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif; background:#f4f6fa; color:#1e2535; min-height:100vh; }
+    body {
+      font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+      background:#f4f6fa; color:#1e2535;
+      display:flex; flex-direction:column; height:100vh; overflow:hidden;
+    }
 
     /* ── HEADER ── */
     .header {
       background:#fff; border-bottom:1px solid #e3e8f0;
-      padding:11px 24px; display:flex; align-items:center; justify-content:space-between;
-      position:sticky; top:0; z-index:100; box-shadow:0 1px 4px rgba(0,0,0,0.06); gap:12px; flex-wrap:wrap;
+      padding:10px 20px; display:flex; align-items:center; justify-content:space-between;
+      flex-shrink:0; z-index:100; box-shadow:0 1px 4px rgba(0,0,0,0.06); gap:12px; flex-wrap:wrap;
     }
     .logo-area { display:flex; align-items:center; gap:10px; flex-shrink:0; }
     .logo-dot  { width:9px; height:9px; border-radius:50%; background:#2563eb; box-shadow:0 0 7px rgba(37,99,235,0.45); }
@@ -40,8 +44,40 @@
     .btn-refresh:hover { background:#1d4ed8; }
     .btn-refresh:disabled { background:#e5e7eb; color:#9ca3af; cursor:not-allowed; }
 
+    /* ── APP LAYOUT ── */
+    .app-body { display:flex; flex:1; min-height:0; overflow:hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width:196px; flex-shrink:0;
+      background:#fff; border-right:1px solid #e3e8f0;
+      display:flex; flex-direction:column;
+      overflow-y:auto; padding:10px 0 20px;
+    }
+    .sidebar-group { margin-bottom:4px; }
+    .sidebar-group-label {
+      font-size:9px; font-weight:800; letter-spacing:1.2px; color:#9ca3af;
+      text-transform:uppercase; padding:10px 16px 5px;
+    }
+    .sidebar-item {
+      display:flex; align-items:center; gap:8px; width:100%;
+      padding:8px 14px 8px 16px; border:none; background:transparent;
+      text-align:left; font-size:12px; font-weight:600; color:#6b7280;
+      cursor:pointer; transition:all .15s; border-left:3px solid transparent;
+      white-space:nowrap;
+    }
+    .sidebar-item:hover:not(.active) { background:#f4f6fa; color:#374151; }
+    .sidebar-item.active {
+      background:#eff6ff; color:#2563eb;
+      border-left-color:#2563eb; font-weight:700;
+    }
+    .sidebar-icon { font-size:14px; flex-shrink:0; }
+
+    /* ── CONTENT AREA ── */
+    .content-area { flex:1; overflow-y:auto; overflow-x:hidden; min-width:0; }
+
     /* ── MAIN ── */
-    .main { padding:20px 24px; max-width:1440px; margin:0 auto; }
+    .main { padding:20px 24px; }
 
     /* ── UPLOAD GUIDE ── */
     .upload-guide { background:#f0f7ff; border:1px solid #bfdbfe; border-radius:10px; padding:14px 18px; margin-bottom:16px; }
@@ -722,10 +758,40 @@
   </div>
 </div>
 
-<!-- ═══════════ MAIN ═══════════ -->
-<div class="main">
-  <!-- 다운로드 안내 -->
+<!-- ═══════════ APP BODY ═══════════ -->
+<div class="app-body">
 
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-group">
+    <div class="sidebar-group-label" data-i18n="sideGrpSales">매출/실적</div>
+    <button class="sidebar-item active" id="sideTab_dashboard" onclick="setMainTab('dashboard')">
+      <span class="sidebar-icon">📊</span><span data-i18n="tabDashboard">대시보드</span>
+    </button>
+    <button class="sidebar-item" id="sideTab_sales" onclick="setMainTab('sales')">
+      <span class="sidebar-icon">📦</span><span data-i18n="tabSales">판매 실적</span>
+    </button>
+    <button class="sidebar-item" id="sideTab_compare" onclick="setMainTab('compare')">
+      <span class="sidebar-icon">📅</span><span data-i18n="tabCompare">기간별 비교</span>
+    </button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-label" data-i18n="sideGrpUser">유저</div>
+    <button class="sidebar-item" id="sideTab_retention" onclick="setMainTab('retention')">
+      <span class="sidebar-icon">👥</span><span data-i18n="tabRetention">리텐션</span>
+    </button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-label" data-i18n="sideGrpEtc">기타</div>
+    <button class="sidebar-item" id="sideTab_changelog" onclick="setMainTab('changelog')">
+      <span class="sidebar-icon">📝</span><span data-i18n="tabChangelog">업데이트 히스토리</span>
+    </button>
+  </div>
+</div><!-- /sidebar -->
+
+<!-- CONTENT AREA -->
+<div class="content-area">
+<div class="main">
   <!-- Data Source 패널 -->
   <div class="ds-panel" id="dsPanelWrap">
     <div class="ds-panel-header" id="dsPanelHeader" onclick="toggleDsPanel()">
@@ -780,7 +846,9 @@
       <div class="empty-hint" data-i18n="emptyLoadingHint">잠시만 기다려주세요</div>
     </div>
   </div>
-</div>
+</div><!-- /main -->
+</div><!-- /content-area -->
+</div><!-- /app-body -->
 
 <!-- ═══════════ SCRIPT ═══════════ -->
 <script>
@@ -873,6 +941,7 @@ const I18N = {
     d7:'7일', d30:'30일', d90:'90일', dAll:'전체',
     revSection:'Revenue KPI', trfSection:'Traffic KPI',
     tabDashboard:'대시보드', tabRetention:'리텐션', tabCompare:'기간별 비교', tabChangelog:'업데이트 히스토리',
+    sideGrpSales:'매출/실적', sideGrpUser:'유저', sideGrpEtc:'기타',
     rangeLabel:'기간 설정', rangeApply:'적용', rangeReset:'초기화',
     rangeActive:'적용 중', rangeDefault:'기본 기간 (탭 기준)',
     comboSub:'최근 60일 · 기준:', todayLabel:'일간 지표',
@@ -996,6 +1065,7 @@ const I18N = {
     d7:'7日', d30:'30日', d90:'90日', dAll:'全体',
     revSection:'Revenue KPI', trfSection:'トラフィック KPI',
     tabDashboard:'ダッシュボード', tabRetention:'リテンション', tabCompare:'期間別比較', tabChangelog:'更新履歴',
+    sideGrpSales:'売上/実績', sideGrpUser:'ユーザー', sideGrpEtc:'その他',
     rangeLabel:'期間設定', rangeApply:'適用', rangeReset:'リセット',
     rangeActive:'適用中', rangeDefault:'デフォルト期間（タブ基準）',
     comboSub:'最近60日 · 基準:', todayLabel:'日次指標',
@@ -2897,7 +2967,14 @@ function renderSalesPage() {
   </div>`;
 }
 
-function setMainTab(tab) { mainTab=tab; render(); }
+function setMainTab(tab) {
+  mainTab=tab;
+  ['dashboard','sales','compare','retention','changelog'].forEach(id => {
+    const el=document.getElementById('sideTab_'+id);
+    if(el) el.classList.toggle('active', id===tab);
+  });
+  render();
+}
 
 // ── 업데이트 히스토리 ────────────────────
 // tag: 'feat'(기능추가) | 'fix'(버그수정) | 'ui'(디자인/UI) | 'data'(데이터)
@@ -3301,39 +3378,27 @@ function render() {
   const hasRev = revData && revData.length>0;
   const hasTrf = trfData && trfData.length>0;
 
-  // ── 메인 탭 ──
-  const mainTabsHtml = `
-  <div class="main-tabs">
-    <button class="mtab ${mainTab==='dashboard'?'active':''}" onclick="setMainTab('dashboard')">${t('tabDashboard')}</button>
-    <button class="mtab ${mainTab==='sales'?'active':''}" onclick="setMainTab('sales')">${t('tabSales')}</button>
-    <button class="mtab ${mainTab==='retention'?'active':''}" onclick="setMainTab('retention')">${t('tabRetention')}</button>
-    <button class="mtab ${mainTab==='compare'?'active':''}" onclick="setMainTab('compare')">${t('tabCompare')}</button>
-    <button class="mtab ${mainTab==='changelog'?'active':''}" onclick="setMainTab('changelog')">${t('tabChangelog')}</button>
-  </div>`;
-
   // rev/trf 없어도 렌더링 가능한 탭들은 먼저 처리
   if (mainTab === 'retention') {
-    document.getElementById('dash').innerHTML = mainTabsHtml + `
-    <div class="main" style="padding-top:16px;">
-      <div class="section-head"><span class="section-title">${t('tabRetTitle')}</span></div>
+    document.getElementById('dash').innerHTML = `
+    <div style="padding-top:4px;">
       ${renderRetPage()}
     </div>`;
     return;
   }
   if (mainTab === 'sales') {
-    document.getElementById('dash').innerHTML = mainTabsHtml + `
-    <div class="main" style="padding-top:16px;">
-      <div class="section-head"><span class="section-title">${t('salesTitle')}</span></div>
+    document.getElementById('dash').innerHTML = `
+    <div style="padding-top:4px;">
       ${renderSalesPage()}
     </div>`;
     return;
   }
   if (mainTab === 'compare') {
-    document.getElementById('dash').innerHTML = mainTabsHtml + renderComparePage();
+    document.getElementById('dash').innerHTML = renderComparePage();
     return;
   }
   if (mainTab === 'changelog') {
-    document.getElementById('dash').innerHTML = mainTabsHtml + renderChangelogPage();
+    document.getElementById('dash').innerHTML = renderChangelogPage();
     return;
   }
 
@@ -3347,7 +3412,7 @@ function render() {
   const fRev = hasRev ? filterRange(revData) : [];
   const fTrf = hasTrf ? filterRange(trfData) : [];
 
-  let html = mainTabsHtml;
+  let html = '';
 
   // ① 오버뷰 차트
   html += `
